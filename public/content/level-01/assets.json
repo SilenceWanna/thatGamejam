@@ -1,0 +1,23 @@
+{
+  "images": {
+    "background": { "file": null },
+    "ground": { "file": null },
+    "platform": { "file": null },
+    "player": { "file": null, "displayWidth": 48, "displayHeight": 64 },
+    "fragment": { "file": null, "displayWidth": 32, "displayHeight": 38 },
+    "spawnPoint": { "file": null, "displayWidth": 76, "displayHeight": 92 }
+  },
+  "audio": {
+    "bgm": { "files": ["audio/ambience.wav"], "volume": 0.28 },
+    "fullPhrase": { "files": ["audio/full-phrase.wav"], "volume": 0.7 },
+    "fragmentMist": { "files": ["audio/fragment-mist.wav"], "volume": 0.7 },
+    "fragmentBloom": { "files": ["audio/fragment-bloom.wav"], "volume": 0.7 },
+    "fragmentAmber": { "files": ["audio/fragment-amber.wav"], "volume": 0.7 },
+    "fragmentFern": { "files": ["audio/fragment-fern.wav"], "volume": 0.7 },
+    "collect": { "files": ["audio/collect.wav"], "volume": 0.5 },
+    "jump": { "files": ["audio/jump.wav"], "volume": 0.17 },
+    "success": { "files": ["audio/success.wav"], "volume": 0.5 },
+    "incorrect": { "files": ["audio/incorrect.wav"], "volume": 0.25 },
+    "click": { "files": ["audio/click.wav"], "volume": 0.22 }
+  }
+}

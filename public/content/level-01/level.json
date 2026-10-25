@@ -1,0 +1,29 @@
+{
+  "id": "level-01",
+  "title": "初醒之森",
+  "subtitle": "收集四段声音，拼回林间的第一支旋律。",
+  "world": { "width": 1280, "height": 720, "groundY": 628 },
+  "spawn": { "x": 136, "feetY": 628, "activationRadius": 66 },
+  "player": {
+    "moveSpeed": 290, "jumpSpeed": 750, "gravity": 1400,
+    "bodyWidth": 30, "bodyHeight": 52,
+    "coyoteTimeMs": 100, "jumpBufferMs": 120
+  },
+  "platforms": [
+    { "id": "left-platform", "x": 420, "topY": 488, "width": 184, "height": 26 },
+    { "id": "center-platform", "x": 650, "topY": 348, "width": 184, "height": 26 },
+    { "id": "right-platform", "x": 880, "topY": 508, "width": 184, "height": 26 }
+  ],
+  "fragments": [
+    { "id": "amber", "label": "琥珀", "color": "#bd8e48", "x": 420, "y": 449, "audioKey": "fragmentAmber" },
+    { "id": "mist", "label": "晨雾", "color": "#7895ab", "x": 650, "y": 309, "audioKey": "fragmentMist" },
+    { "id": "fern", "label": "蕨叶", "color": "#639080", "x": 880, "y": 469, "audioKey": "fragmentFern" },
+    { "id": "bloom", "label": "花影", "color": "#b77e85", "x": 1094, "y": 589, "audioKey": "fragmentBloom" }
+  ],
+  "puzzle": {
+    "correctOrder": ["mist", "bloom", "amber", "fern"],
+    "allowReferencePlayback": true,
+    "fullPhraseAudioKey": "fullPhrase"
+  },
+  "nextLevelId": null
+}

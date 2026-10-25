@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3efe3" />
+    <meta name="description" content="林间回响：在森林中收集散落的乐句，回到起点，拼回一段旋律。" />
+    <title>林间回响 · 第一关 Demo</title>
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="page-header">
+        <a class="wordmark" href="./" aria-label="林间回响首页"><span class="brand-symbol">♮</span><span>林间回响<small>ECHOES IN THE GROVE</small></span></a>
+        <div class="edition"><span></span> 可游玩原型 <b> / </b> LEVEL 01</div>
+      </header>
+      <section class="game-frame" aria-label="第一关游戏区域">
+        <div id="game" tabindex="0" aria-label="A D 左右移动，空格跳跃。收集四段旋律后回到左侧出生点。"></div>
+        <div id="loading-message" role="status">正在唤醒森林中的旋律…</div>
+      </section>
+      <footer class="page-footer">
+        <p><span class="footer-dot"></span> 找到散落的声音，让旋律重新相遇。</p>
+        <p><kbd>A</kbd><kbd>D</kbd> 移动 <span class="divider">/</span> <kbd>SPACE</kbd> 跳跃 <span class="divider">/</span> <kbd>ESC</kbd> 暂停</p>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
