@@ -28,17 +28,24 @@ export class LevelScene extends Phaser.Scene {
   private spawnArmed = true;
   private knownCorrectSlots: readonly boolean[] = [];
   private assetWarnings: string[] = [];
+  private starting = false;
+  /** 游戏窗口失去焦点时暂停，避免角色继续移动或声音继续播放。 */
   private readonly onBlur = (): void => this.pauseGame();
+  /** 浏览器切换标签页或隐藏窗口时执行同样的暂停规则。 */
   private readonly onVisibility = (): void => { if (document.hidden) this.pauseGame(); };
 
+  /** 注册玩法主场景；具体世界和本轮状态在 init / create 中初始化。 */
   constructor() { super("Level"); }
+  /** 每次进入或重开关卡时清空流程状态、正确位置提示和音序器引用。 */
   init(data: { content: LevelContent; assetWarnings?: string[] }): void {
     this.content = data.content;
     this.assetWarnings = data.assetWarnings ?? [];
     this.mode = "intro"; this.resumeMode = "playing";
+    this.starting = false;
     this.spawnArmed = true; this.knownCorrectSlots = []; this.puzzle = undefined;
   }
 
+  /** 装配进度、输入、音频、春季世界与界面，并停在等待玩家点击的开场。 */
   create(): void {
     const level = this.content.level;
     this.physics.world.setBounds(0, 0, level.world.width, level.world.height);
@@ -59,9 +66,13 @@ export class LevelScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this);
   }
 
+  /** 探索时处理移动、F 显现、E 收集与返回起点；恢复春天后改为检查右侧出口。 */
   update(_time: number, delta: number): void {
     this.audio?.update(); this.hud?.update();
-    if (this.mode !== "playing" && this.mode !== "restored") { this.inputSource?.reset(); return; }
+    if (this.audio && this.hud) this.hud.setAudioState(this.audio.isMuted, this.audio.isReady);
+    if (this.mode !== "playing" && this.mode !== "restored") {
+      this.inputSource?.reset(); this.world?.hideCollectionPrompt(); return;
+    }
     const input = this.inputSource.sample();
     this.world.update(input, delta);
     if (this.mode === "restored") { if (this.world.atExit) this.finishExit(); return; }
@@ -73,21 +84,33 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  private startGame(): void {
+  /** 开场按钮触发：确认浏览器已启用声音后开始探索，播放一次不扣回忆机会的清晰主题。 */
+  private async startGame(): Promise<void> {
+    if (this.starting) return;
+    this.starting = true;
+    const ready = await this.audio.start();
+    this.starting = false;
+    if (!this.sys.isActive()) return;
+    if (!ready) {
+      this.overlays.showIntro(this.content.level, () => { void this.startGame(); }, "声音尚未启用，请再次点击下方按钮开启声音并开始。");
+      return;
+    }
     this.overlays.close(); this.mode = "playing";
-    this.inputSource.reset(); this.audio.start(); this.physics.resume(); this.hud.setVisible(true);
+    this.inputSource.reset(); this.physics.resume(); this.hud.setVisible(true);
     // 开场清晰主题独立于答题用模糊记忆，不消耗三次答题提示。
-    this.audio.playSequence([this.content.level.puzzle.openingPhraseAudioKey]);
+    void this.audio.playSequence([this.content.level.puzzle.openingPhraseAudioKey]);
     if (this.assetWarnings.length) this.hud.notify(`部分素材加载失败：${this.assetWarnings.join("、")}`, 10000);
     else this.hud.notify(this.content.level.story.objective, 6500);
   }
 
+  /** F 或 HUD 显现按钮触发：一次显现本轮所有声音罐，重复触发不重置收集。 */
   private revealNotes(): void {
     if (this.mode !== "playing" || !this.progress.revealFragments()) return;
     this.world.revealAll(); this.world.player.playInteraction(); this.audio.playEffect("reveal"); this.hud.refresh(this.progress);
-    this.hud.notify("本轮四个音符已显现，接触音符或靠近按 E / 点击，将声音装入罐中。", 5000);
+    this.hud.notify("本轮四个声音罐已显现。靠近玻璃瓶，看到“按 E 收集”后按 E。", 5000);
   }
 
+  /** E 交互选中附近瓶子后登记收集，播放动作与音效；集齐四个后点亮左侧回忆点。 */
   private collect(id: string): void {
     if (this.mode !== "playing") return;
     if (!this.progress.fragmentsRevealed) { this.hud.notify("自然的声音还隐藏着，先按 F 显现音符。"); return; }
@@ -100,6 +123,7 @@ export class LevelScene extends Phaser.Scene {
     } else this.hud.notify(`已将「${label}」装入罐中  ·  ${this.progress.count} / ${this.progress.total}`);
   }
 
+  /** HUD 回忆点按钮入口：必须集齐声音且站在出生点范围内，才允许打开音序器。 */
   private openMemoryPoint(): void {
     if (this.mode !== "playing") return;
     if (!this.progress.allCollected) { this.hud.notify("先按 F 显现并收集四个音符，再回到回忆点。"); return; }
@@ -107,6 +131,7 @@ export class LevelScene extends Phaser.Scene {
     if (this.progress.enterSpawnPoint()) { this.spawnArmed = false; this.openPuzzle(); }
   }
 
+  /** 进入排序：停止角色和物理，隐藏 HUD；本轮再次打开时沿用原排列与回忆额度。 */
   private openPuzzle(): void {
     this.mode = "puzzle"; this.world.player.stop(); this.inputSource.reset();
     this.physics.pause(); this.audio.stopPhrase(); this.hud.setVisible(false);
@@ -115,6 +140,7 @@ export class LevelScene extends Phaser.Scene {
       () => this.closePuzzle(), () => this.restoreSeason(), positions => this.failAttempt(positions));
   }
 
+  /** 关闭排序回到探索；保留本轮排列和已用提示，须先离开起点再返回才自动重开。 */
   private closePuzzle(): void {
     this.audio.stopPhrase(); this.puzzle?.setVisible(false); this.progress.leaveArrangement();
     this.mode = "playing"; this.inputSource.reset(); this.physics.resume();
@@ -122,6 +148,7 @@ export class LevelScene extends Phaser.Scene {
     this.hud.notify("本轮排列和已用回忆均已保留，离开起点再回来可继续还原。", 4500);
   }
 
+  /** 错误提交入口：扣一次尝试、记录正确槽位并隐藏复位所有瓶子；耗尽三次则显示失败界面。 */
   private failAttempt(correctPositions: readonly boolean[]): void {
     if (!this.progress.failArrangement()) return;
     this.knownCorrectSlots = correctPositions;
@@ -137,11 +164,12 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
+  /** 正确提交入口：播放独立的恢复乐句和春季解冻演出，演出结束后开放出口并恢复行走。 */
   private restoreSeason(): void {
     if (!this.progress.complete(true)) return;
     this.mode = "restoring"; this.puzzle?.destroy(); this.puzzle = undefined;
     this.audio.playEffect("weatherRestore");
-    this.audio.playSequence([this.content.level.puzzle.restoredPhraseAudioKey]);
+    void this.audio.playSequence([this.content.level.puzzle.restoredPhraseAudioKey]);
     this.world.spawn.setReady(false); this.hud.refresh(this.progress); this.hud.setVisible(true);
     this.hud.notify(this.content.level.story.restored, 9000);
     this.world.environment.restore(() => {
@@ -149,11 +177,13 @@ export class LevelScene extends Phaser.Scene {
     });
   }
 
+  /** 恢复春天后走过右侧出口才显示本关完成；不是在答案正确的一刻立即切关。 */
   private finishExit(): void {
     this.mode = "completed"; this.world.player.stop(); this.physics.pause(); this.hud.setVisible(false);
     this.overlays.showComplete(this.content.level.title, () => this.restartLevel(), this.content.level.nextLevelId, () => { void this.goToNextLevel(); });
   }
 
+  /** Esc、暂停按钮或窗口失焦时暂停；记住之前在探索、排序还是恢复后的行走状态。 */
   private pauseGame(): void {
     if (this.mode !== "playing" && this.mode !== "puzzle" && this.mode !== "restored") return;
     this.resumeMode = this.mode; this.mode = "paused"; this.inputSource.reset();
@@ -161,6 +191,7 @@ export class LevelScene extends Phaser.Scene {
     this.overlays.showPause(() => this.resumeGame(), () => this.restartLevel(), () => this.audio.toggleMute(), this.audio.isMuted);
   }
 
+  /** 继续游戏：恢复之前的界面、输入和音频；排序界面仍保持物理暂停。 */
   private resumeGame(): void {
     this.overlays.close(); this.mode = this.resumeMode; this.inputSource.reset(); this.audio.resume();
     this.hud.setMuted(this.audio.isMuted); this.hud.refresh(this.progress);
@@ -168,6 +199,7 @@ export class LevelScene extends Phaser.Scene {
     else { this.physics.resume(); this.hud.setVisible(true); }
   }
 
+  /** Esc 的统一分发：暂停中继续、排序中关闭音序器，其他可操作阶段打开暂停界面。 */
   private onEscape(event: KeyboardEvent): void {
     if (event.repeat) return;
     if (this.mode === "paused") this.resumeGame();
@@ -175,6 +207,7 @@ export class LevelScene extends Phaser.Scene {
     else this.pauseGame();
   }
 
+  /** 完成界面的下一关入口：按 nextLevelId 读取新关卡；读取失败时显示明确错误。 */
   private async goToNextLevel(): Promise<void> {
     const id = this.content.level.nextLevelId;
     if (!id) return;
@@ -182,7 +215,9 @@ export class LevelScene extends Phaser.Scene {
     catch (error) { window.alert(`下一关暂时无法读取：${error instanceof Error ? error.message : String(error)}`); }
   }
 
+  /** 从暂停、失败或完成界面重开本关，重建进度以恢复三次尝试与开场主题。 */
   private restartLevel(): void { this.scene.restart({ content: this.content, assetWarnings: this.assetWarnings }); }
+  /** 离开或重开关卡时解绑输入/失焦事件，并清理旧面板和音频，防止跨关重复触发。 */
   private shutdown(): void {
     window.removeEventListener("blur", this.onBlur); document.removeEventListener("visibilitychange", this.onVisibility);
     this.input.keyboard?.off("keydown-ESC", this.onEscape, this); this.inputSource.destroy();

@@ -4,6 +4,7 @@ import { createAssetImage } from "../art/assetImages";
 
 export interface Terrain { ground: Phaser.GameObjects.Rectangle; platforms: Phaser.Physics.Arcade.StaticGroup }
 
+/** 按 world / platforms 配置建立地面和单向平台；图片独立于碰撞体，换素材不会改变跳跃判定。 */
 export function createTerrain(scene: Phaser.Scene, content: LevelContent): Terrain {
   const { world, platforms } = content.level;
   const groundHeight = world.height - world.groundY;

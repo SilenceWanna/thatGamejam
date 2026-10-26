@@ -8,12 +8,14 @@ export class AttemptIndicator {
   private readonly dots: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
 
+  /** 创建 HUD 和排序窗口共用的回忆圆点与剩余尝试文字。 */
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.dots = scene.add.graphics();
     this.label = uiText(scene, 73, -7, "", 11, "#87927a");
     this.root = scene.add.container(x, y, [this.dots, this.label]);
   }
 
+  /** 使用同一个 LevelProgress 绘制实心/空心圆点；听后答错不会重复扣，未听答错也作废本轮额度。 */
   refresh(progress: LevelProgress): void {
     this.dots.clear();
     const used = progress.maxAttempts - progress.referencesRemaining;

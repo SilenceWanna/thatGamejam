@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .sites-runtime/
+.launcher/
 .DS_Store
 *.local
 logs/*

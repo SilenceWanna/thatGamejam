@@ -94,6 +94,7 @@ volume 范围为 0～1。空数组可以停用可选音效；三版乐句与四�
 - 逻辑画面 1280×720；窗口缩放无需改配置。修改逻辑分辨率还需同步 UI 布局。
 - `platforms` 的 x 为中心，topY 为承接顶面，碰撞尺寸独立于图片。
 - `fragments` 包含 id、label、color、坐标、audioKey、sourceType 与 interactionRadius。sourceType 保留 wind/rain/sprout/bird 声音分类，不再绘制对应来源图形。
+- `interactionRadius` 控制瓶旁提示和 E 键收集的范围，以角色碰撞体中心到瓶子配置坐标的距离计算，当前为 72。只有已显现且未收集的瓶子会出现提示；靠近本身不会收集。
 - 片段列表的顺序是罐子栏顺序；正确顺序由 `puzzle.correctOrder` 单独决定。当前答案为春风→雨滴→嫩芽→鸟鸣。
 - `puzzle.maxAttempts: 3`；每轮只听一次模糊回忆。`allowUnlimitedAttemptsAfterExhaustion: false` 是本次确认的规则，不要为了沿用策划旧规则擅自开启。
 - `puzzle.allowReferencePlayback` 允许或禁用答题模糊提示，不影响开场主题。

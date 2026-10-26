@@ -15,7 +15,7 @@
   "player": {
     "moveSpeed": 290,
     "jumpSpeed": 750,
-    "gravity": 1400,
+    "gravity": 1800,
     "bodyWidth": 30,
     "bodyHeight": 52,
     "coyoteTimeMs": 100,

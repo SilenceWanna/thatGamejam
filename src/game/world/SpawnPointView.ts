@@ -6,6 +6,7 @@ export class SpawnPointView {
   private readonly ring: Phaser.GameObjects.Ellipse;
   private readonly label: Phaser.GameObjects.Text;
 
+  /** 在出生点绘制回忆点与呼吸光环，正式素材通过 spawnPoint 键替换。 */
   constructor(scene: Phaser.Scene, content: LevelContent) {
     const { x, feetY } = content.level.spawn;
     const visual = scene.add.container(x, feetY).setDepth(2);
@@ -26,6 +27,7 @@ export class SpawnPointView {
     scene.tweens.add({ targets: this.ring, alpha: 0.5, duration: 1800, yoyo: true, repeat: -1, ease: "Sine.InOut" });
   }
 
+  /** 集齐片段后增强光环并提示返回；重试或还原成功时恢复普通起点样式。 */
   setReady(ready: boolean): void {
     this.ring.setStrokeStyle(3, ready ? 0xb08b3b : 0xa59c64, 0.9).setFillStyle(0xe1cd87, ready ? 0.4 : 0.13);
     this.label.setText(ready ? "← 回到这里，还原春天" : "回忆点 · 苏醒之地");

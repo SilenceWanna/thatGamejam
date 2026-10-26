@@ -4,6 +4,7 @@ import { loadLevelContent } from "./content/loadLevelContent";
 import { BootScene } from "./game/scenes/BootScene";
 import { LevelScene } from "./game/scenes/LevelScene";
 
+/** 游戏启动入口：读取第一关设定，创建 1280×720 横屏画布、固定步长物理和加载/玩法场景。 */
 async function start(): Promise<void> {
   const content = await loadLevelContent("level-01");
   new Phaser.Game({

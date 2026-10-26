@@ -30,7 +30,10 @@ export class PhrasePuzzlePanel {
   private selectedId: string | null = null;
   private playingIndex: number | null = null;
   private locked = false;
+  private destroyed = false;
+  private referencePending = false;
 
+  /** 创建本轮音序器、声音库和四个槽位；答案来自 correctOrder，回忆额度沿用关卡进度。 */
   constructor(private readonly scene: Phaser.Scene, private readonly content: LevelContent, private readonly progress: LevelProgress,
     private readonly audio: AudioService, private readonly knownCorrectSlots: readonly boolean[], onClose: () => void,
     private readonly onCorrect: () => void, private readonly onIncorrect: (correctPositions: readonly boolean[]) => void) {
@@ -55,24 +58,20 @@ export class PhrasePuzzlePanel {
     this.root.add([heading, hintText]);
     this.createSlots();
     this.message = uiText(scene, 640, 537, "回忆机会无法留到下一轮。先想一想，再让声音相遇。", 14, "#8a947d").setOrigin(0.5);
-    const clear = new UiButton(scene, 263, 603, 146, 44, "清空排列", () => {
-      if (this.locked) return;
-      audio.stopPhrase(); audio.playEffect("jarReset"); this.arrangement.clear(); this.selectedId = null; this.refresh();
-      this.setMessage("已经清空；本轮已消耗的回忆不会恢复。", false);
-    });
-    this.playButton = new UiButton(scene, 451, 603, 188, 44, "♪  按节拍演奏", () => {
-      const keys = this.arrangement.values.map(id => this.fragment(id!).audioKey);
-      this.listen(keys, true);
-    });
+    const clear = new UiButton(scene, 263, 603, 146, 44, "清空排列", () => this.clearArrangement());
+    this.playButton = new UiButton(scene, 451, 603, 188, 44, "♪  按节拍演奏", () => this.playArrangement());
     const stop = new UiButton(scene, 642, 603, 150, 44, "停止试听", () => audio.stopPhrase());
     this.submitButton = new UiButton(scene, 934, 603, 286, 48, "还原春季乐句  →", () => this.submit(), true);
     this.root.add([this.message, clear.root, this.playButton.root, stop.root, this.submitButton.root]);
     this.refresh();
   }
 
+  /** 离开/返回音序器时切换显示，保留本轮排列并重新刷新回忆额度。 */
   setVisible(visible: boolean): void { this.root.setVisible(visible); if (visible) this.refresh(); }
-  destroy(): void { this.audio.stopPhrase(); this.dragging.destroy(); this.root.destroy(); }
+  /** 答错、成功或重开时清理试听、拖拽与界面，阻止旧播放请求继续修改已销毁面板。 */
+  destroy(): void { this.destroyed = true; this.audio.stopPhrase(); this.dragging.destroy(); this.root.destroy(); }
 
+  /** 按 fragments 列表顺序建立可点击/拖拽的声音库，以及每只瓶子不限次的试听按钮。 */
   private createLibrary(): void {
     this.content.level.fragments.forEach((fragment, index) => {
       const x = this.rowX(index);
@@ -82,11 +81,7 @@ export class PhrasePuzzlePanel {
       if (!image) drawJar(icon, colorNumber(fragment.color), x - 47, 255, 0.85);
       const label = uiText(this.scene, x + 14, 253, fragment.label, 20).setOrigin(0.5);
       const hit = this.scene.add.rectangle(x, 258, 194, 76, 0, 0).setInteractive({ useHandCursor: true });
-      hit.on("pointerdown", () => {
-        if (this.locked) return;
-        this.selectedId = this.selectedId === fragment.id ? null : fragment.id;
-        this.audio.playEffect("click"); this.refresh();
-      });
+      hit.on("pointerdown", () => this.selectFragment(fragment.id));
       this.dragging.registerToken(hit, fragment.id);
       const listen = new UiButton(this.scene, x, 310, 150, 30, "♪  试听声音罐", () => this.listen([fragment.audioKey]));
       this.cards.push(card);
@@ -95,6 +90,7 @@ export class PhrasePuzzlePanel {
     });
   }
 
+  /** 创建按拍编号的排序槽位，同时注册点击放入、交换与拖拽落点。 */
   private createSlots(): void {
     this.content.level.fragments.forEach((_, index) => {
       const art = this.scene.add.graphics();
@@ -109,9 +105,10 @@ export class PhrasePuzzlePanel {
     });
   }
 
+  /** 从排列与进度重画选择、高亮、正确位置提示及按钮可用状态；不销毁正在拖拽的对象。 */
   private refresh(): void {
     this.indicator.refresh(this.progress);
-    this.referenceButton?.setEnabled(this.progress.canHearReference && !this.locked)
+    this.referenceButton?.setEnabled(this.progress.canHearReference && !this.locked && !this.referencePending)
       .setLabel(this.progress.referenceUsedThisAttempt ? "本轮回忆已使用" : this.progress.attemptsRemaining === 0 ? "回忆机会已用完" : "♪  听原乐句（模糊）");
     this.cards.forEach((card, index) => {
       const selected = this.content.level.fragments[index].id === this.selectedId;
@@ -132,6 +129,7 @@ export class PhrasePuzzlePanel {
     this.submitButton?.setEnabled(this.arrangement.isFilled && !this.locked);
   }
 
+  /** 点击槽位时放入已选片段、选择已有片段，或再次点击同一片段将其移除。 */
   private clickSlot(index: number): void {
     if (this.locked) return;
     const existing = this.arrangement.values[index];
@@ -142,6 +140,27 @@ export class PhrasePuzzlePanel {
     else this.setMessage("先选择或拖动上方的一只声音罐。", false);
   }
 
+  /** 点击声音库选择/取消选择片段，只改变选择状态，不直接修改排列。 */
+  private selectFragment(id: string): void {
+    if (this.locked) return;
+    this.selectedId = this.selectedId === id ? null : id;
+    this.audio.playEffect("click"); this.refresh();
+  }
+
+  /** 清空本轮所有槽位并停止试听；已经用掉的模糊回忆不会返还。 */
+  private clearArrangement(): void {
+    if (this.locked) return;
+    this.audio.stopPhrase(); this.audio.playEffect("jarReset"); this.arrangement.clear(); this.selectedId = null; this.refresh();
+    this.setMessage("已经清空；本轮已消耗的回忆不会恢复。", false);
+  }
+
+  /** 仅在四个槽位填满时按关卡 BPM 演奏当前排列，并高亮正在发声的槽位。 */
+  private playArrangement(): void {
+    if (!this.arrangement.isFilled || this.locked) return;
+    this.listen(this.arrangement.values.map(id => this.fragment(id!).audioKey), true);
+  }
+
+  /** 点击或拖拽共用的放入入口：停止旧试听，按规则放入/交换，播放放罐音效并刷新界面。 */
   private place(id: string, index: number): void {
     this.audio.stopPhrase();
     this.arrangement.place(id, index);
@@ -151,21 +170,28 @@ export class PhrasePuzzlePanel {
     this.refresh();
   }
 
-  private hearReference(): void {
-    if (!this.progress.canHearReference || this.locked) return;
-    if (!this.audio.playSequence([this.content.level.puzzle.memoryPhraseAudioKey])) {
-      this.setMessage("模糊回忆素材未加载，本次机会没有消耗。", true); return;
+  /** 本轮仅允许一次模糊原乐句；等待声音成功启用后才扣圆点，加载或解锁失败可重试。 */
+  private async hearReference(): Promise<void> {
+    if (!this.progress.canHearReference || this.locked || this.referencePending) return;
+    this.referencePending = true; this.refresh();
+    const played = await this.audio.playSequence([this.content.level.puzzle.memoryPhraseAudioKey]);
+    if (this.destroyed) return;
+    this.referencePending = false;
+    if (!played) {
+      this.setMessage("声音未能播放，请再次点击重试；本次回忆机会没有消耗。", true); this.refresh(); return;
     }
     this.progress.useReference();
     this.setMessage("这是模糊的记忆。本轮不能再次播放原乐句。", false);
     this.refresh();
   }
 
+  /** 试听单罐或当前排列，不消耗回忆机会；完整排列使用固定节拍排程。 */
   private listen(keys: readonly string[], highlight = false): void {
     if (this.locked) return;
-    this.audio.playSequence(keys, index => { this.playingIndex = highlight ? index : null; this.refresh(); }, highlight ? this.content.level.puzzle : undefined);
+    void this.audio.playSequence(keys, index => { this.playingIndex = highlight ? index : null; this.refresh(); }, highlight ? this.content.level.puzzle : undefined);
   }
 
+  /** 填满后锁定本次提交并判定答案；正确通知恢复春天，错误传出逐槽正误并开始下一轮。 */
   private submit(): void {
     if (!this.arrangement.isFilled || this.locked) return;
     this.audio.stopPhrase(); this.locked = true; this.refresh();

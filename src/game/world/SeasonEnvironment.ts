@@ -12,6 +12,7 @@ export class SeasonEnvironment {
   private readonly openGate: Phaser.GameObjects.Container;
   private readonly restoredBackground: Phaser.GameObjects.Image | null;
 
+  /** 建立春季失序/恢复两套背景与出口表现；初始启用真实冰墙，防止提前走到下一季。 */
   constructor(private readonly scene: Phaser.Scene, private readonly content: LevelContent) {
     const { world, season } = content.level;
     this.disorder = scene.add.container(0, 0).setDepth(1);
@@ -47,16 +48,19 @@ export class SeasonEnvironment {
     this.openGate = this.gate(true).setVisible(false);
   }
 
+  /** 显现成功时从角色周围播放扩散光圈，只改变表现不改变收集规则。 */
   revealPulse(x: number, y: number): void {
     const pulse = this.scene.add.circle(x, y - 25, 30, 0xd9e6b6, 0.08).setStrokeStyle(2, 0xd2dfae, 0.65).setDepth(6);
     this.scene.tweens.add({ targets: pulse, scale: 26, alpha: 0, duration: 900, onComplete: () => pulse.destroy() });
   }
 
+  /** 答题失败后短暂叠加冷色闪动，表现天气再次紊乱。 */
   showMistake(): void {
     const flash = this.scene.add.rectangle(640, 360, 1280, 720, 0xa6bdd3, 0.34).setDepth(8);
     this.scene.tweens.add({ targets: flash, alpha: 0, duration: 800, onComplete: () => flash.destroy() });
   }
 
+  /** 正确还原后用 1.5 秒切换为暖色和花草，最后禁用冰墙碰撞并通知场景恢复行走。 */
   restore(onFinished: () => void): void {
     this.restored.setVisible(true);
     if (this.restoredBackground) this.scene.tweens.add({ targets: this.restoredBackground, alpha: 1, duration: 1500 });
@@ -67,6 +71,7 @@ export class SeasonEnvironment {
     } });
   }
 
+  /** 按开/关状态构造夏季入口；优先使用正式图片，缺图时画冰墙或藤蔓道路。 */
   private gate(open: boolean): Phaser.GameObjects.Container {
     const { season, world } = this.content.level;
     const root = this.scene.add.container(season.exitX, world.groundY).setDepth(3);
