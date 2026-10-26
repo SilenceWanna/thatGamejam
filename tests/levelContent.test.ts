@@ -20,7 +20,7 @@ test("第一关内容通过校验，所有配置文件均存在", () => {
   }
 });
 
-test("高度为中高低，左右平台地面可达，中央地面不可达，两侧均能到达中央", () => {
+test("高度为中高低，地面可达左右平台；中央仅能从左侧跳上，右侧不可达", () => {
   const [left, center, right] = level.platforms;
   const { player, world } = level;
   assert.ok(center.topY < left.topY && left.topY < right.topY);
@@ -28,11 +28,14 @@ test("高度为中高低，左右平台地面可达，中央地面不可达，�
   assert.ok(world.groundY - center.topY > height);
   for (const side of [left, right]) {
     assert.ok(world.groundY - side.topY < height);
-    const time = descendingTravelTime(player.jumpSpeed, player.gravity, side.topY - center.topY);
-    assert.ok(time !== null);
-    const requiredHorizontalTravel = Math.abs(side.x - center.x) - center.width / 2 + player.bodyWidth / 2;
-    assert.ok(requiredHorizontalTravel < player.moveSpeed * time, "从侧平台中心出发，有足够时间落到中央平台内侧");
   }
+  // 当前路线有意不对称：左侧高差 140 可跳上中央，右侧高差 160 超过最大跳高。
+  const timeFromLeft = descendingTravelTime(player.jumpSpeed, player.gravity, left.topY - center.topY);
+  assert.ok(timeFromLeft !== null, "左侧平台能够跳到中央平台的高度");
+  const requiredHorizontalTravel = Math.abs(left.x - center.x) - center.width / 2 + player.bodyWidth / 2;
+  assert.ok(requiredHorizontalTravel < player.moveSpeed * timeFromLeft, "从左平台中心出发，有足够时间落到中央平台内侧");
+  assert.equal(descendingTravelTime(player.jumpSpeed, player.gravity, right.topY - center.topY), null,
+    "右侧到中央按设计不可达，不应通过调参意外开放这条路线");
   const centerFragment = level.fragments.find(fragment => fragment.x === center.x)!;
   const groundJumpHeadY = world.groundY - height - player.bodyHeight;
   assert.ok(groundJumpHeadY > centerFragment.y + 22, "不能从地面跳起提前触碰最高处收集物");
