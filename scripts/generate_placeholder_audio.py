@@ -9,6 +9,7 @@ from math import cos, exp, pi, sin
 from pathlib import Path
 import sys
 import wave
+import json
 
 SAMPLE_RATE = 22050
 OUTPUT = Path(__file__).resolve().parents[1] / "public/content/level-01/audio"
@@ -71,6 +72,28 @@ def create_ambience():
     write_wav("ambience.wav", samples)
 
 
+def create_spring_phrase():
+    """一罐一拍；清晰开场、模糊回忆和天气恢复为三个独立文件入口。"""
+    level = json.loads((OUTPUT.parent / "level.json").read_text())
+    duration = 60 / level["puzzle"]["bpm"] * level["puzzle"]["beatsPerFragment"]
+    full = []
+    for name, midi in [("wind", 60), ("rain", 64), ("sprout", 67), ("bird", 72)]:
+        segment = bell_note(midi, duration)
+        write_wav(f"jar-{name}.wav", segment)
+        full.extend(segment)
+    write_wav("opening-phrase.wav", full)
+    write_wav("restored-phrase.wav", full)
+    # 低通与短回声让答题回忆确实区别于开场版本；保持原来的拍点与总时长。
+    memory = []
+    filtered = 0
+    delay = round(0.12 * SAMPLE_RATE)
+    for index, sample in enumerate(full):
+        filtered += 0.045 * (sample - filtered)
+        echo = memory[index - delay] * 0.24 if index >= delay else 0
+        memory.append(filtered * 0.85 + echo)
+    write_wav("memory-phrase.wav", memory)
+
+
 def create_effects():
     for filename, notes, duration in [
         ("collect.wav", [79, 84], 0.12),
@@ -78,6 +101,8 @@ def create_effects():
         ("incorrect.wav", [55, 53], 0.15),
         ("jump.wav", [64, 69], 0.055),
         ("click.wav", [76], 0.06),
+        ("reveal.wav", [72, 79], 0.18),
+        ("weather-restore.wav", [60, 64, 67, 72], 0.18),
     ]:
         samples = []
         for note in notes:
@@ -89,5 +114,6 @@ if __name__ == "__main__":
     OUTPUT.mkdir(parents=True, exist_ok=True)
     create_phrase()
     create_ambience()
+    create_spring_phrase()
     create_effects()
-    print(f"Generated 11 temporary WAV files in {OUTPUT}")
+    print(f"Generated {len(list(OUTPUT.glob('*.wav')))} temporary WAV files in {OUTPUT}")

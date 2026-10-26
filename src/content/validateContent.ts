@@ -39,7 +39,7 @@ export function validateContent(levelValue: unknown, assetsValue: unknown): asse
     if (image.animations !== undefined) {
       assert(record(image.animations), `图片 ${name} 的 animations 应为对象。`);
       for (const [state, frames] of Object.entries(image.animations)) {
-        assert(["idle", "run", "jump"].includes(state) && Array.isArray(frames) && frames.length > 0 && frames.every(frame => Number.isInteger(frame) && frame >= 0), `图片 ${name} 的动画 ${state} 无效。`);
+        assert(["idle", "run", "jump", "interact"].includes(state) && Array.isArray(frames) && frames.length > 0 && frames.every(frame => Number.isInteger(frame) && frame >= 0), `图片 ${name} 的动画 ${state} 无效。`);
       }
     }
   }
@@ -53,6 +53,7 @@ export function validateContent(levelValue: unknown, assetsValue: unknown): asse
     assert(typeof fragment.label === "string" && typeof fragment.color === "string" && /^#[0-9a-f]{6}$/i.test(fragment.color), "片段标签或颜色无效。");
     assert(finite(fragment.x) && finite(fragment.y) && typeof fragment.audioKey === "string", "片段坐标或音频引用无效。");
     assert(fragment.audioKey in assetsValue.audio, `片段 ${fragment.id} 引用了不存在的音频。`);
+    assert(["wind", "rain", "sprout", "bird"].includes(String(fragment.sourceType)) && positive(fragment.interactionRadius), "自然声音类型或互动范围无效。");
     fragmentIds.add(fragment.id);
   }
   assert(record(level.puzzle) && Array.isArray(level.puzzle.correctOrder), "缺少排序答案。");
@@ -60,6 +61,18 @@ export function validateContent(levelValue: unknown, assetsValue: unknown): asse
   assert(order.length === fragmentIds.size && new Set(order).size === order.length && order.every(id => typeof id === "string" && fragmentIds.has(id)), "答案必须恰好包含所有片段一次。");
   assert(typeof level.puzzle.allowReferencePlayback === "boolean", "完整乐句试听开关无效。");
   assert(typeof level.puzzle.fullPhraseAudioKey === "string" && level.puzzle.fullPhraseAudioKey in assetsValue.audio, "完整乐句音频不存在。");
+  for (const field of ["openingPhraseAudioKey", "memoryPhraseAudioKey", "restoredPhraseAudioKey"]) {
+    assert(typeof level.puzzle[field] === "string" && String(level.puzzle[field]) in assetsValue.audio, `${field} 音频接口缺失。`);
+  }
+  assert(Number.isInteger(level.puzzle.maxAttempts) && Number(level.puzzle.maxAttempts) > 0, "尝试次数必须为正整数。");
+  assert(typeof level.puzzle.allowUnlimitedAttemptsAfterExhaustion === "boolean", "机会耗尽后的规则无效。");
+  assert(positive(level.puzzle.bpm) && positive(level.puzzle.beatsPerFragment), "BPM 和片段拍数必须大于零。");
+  assert(record(level.story), "叙事文本不完整。");
+  const story = level.story;
+  assert(["awakening", "objective", "restored"].every(name => typeof story[name] === "string"), "叙事文本不完整。");
+  assert(record(level.season) && ["spring", "summer", "autumn", "winter"].includes(String(level.season.id)), "季节标识无效。");
+  assert(positive(level.season.exitX) && level.season.exitX < level.world.width && typeof level.season.nextSeasonLabel === "string", "季节出口配置无效。");
+  for (const field of ["disorderTint", "restoredTint"]) assert(typeof level.season[field] === "string" && /^#[0-9a-f]{6}$/i.test(String(level.season[field])), "季节颜色无效。");
   assert(level.nextLevelId === null || typeof level.nextLevelId === "string", "nextLevelId 应为关卡 ID 或 null。");
 }
 

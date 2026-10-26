@@ -1,35 +1,58 @@
 import Phaser from "phaser";
 import type { FragmentDefinition, LevelContent } from "../../content/types";
-import { colorNumber, createAssetImage, drawNote } from "../art/assetImages";
+import { colorNumber, createAssetImage, drawJar } from "../art/assetImages";
 
+/** 只显示声音罐；图形、点击区域和拾取碰撞区均在本轮按 F 后启用。 */
 export class PhraseCollectible {
   readonly trigger: Phaser.GameObjects.Zone;
   private readonly visual: Phaser.GameObjects.Container;
+  private readonly clickTarget: Phaser.GameObjects.Zone;
   private collected = false;
 
-  constructor(private readonly scene: Phaser.Scene, content: LevelContent, readonly definition: FragmentDefinition) {
-    const { x, y, color, label } = definition;
+  constructor(private readonly scene: Phaser.Scene, content: LevelContent, readonly definition: FragmentDefinition, onClick: () => void) {
+    const { x, y, color } = definition;
     this.trigger = scene.add.zone(x, y, 36, 44);
     scene.physics.add.existing(this.trigger, true);
+    this.clickTarget = scene.add.zone(x, y, 60, 64).setDepth(3).setInteractive({ useHandCursor: true });
+    this.clickTarget.on("pointerdown", onClick);
     this.visual = scene.add.container(x, y).setDepth(3);
-    const graphics = scene.add.graphics();
-    graphics.fillStyle(colorNumber(color), 0.1).fillCircle(0, 0, 26);
-    graphics.lineStyle(1, colorNumber(color), 0.4).strokeCircle(0, 0, 22);
-    this.visual.add(graphics);
+    const art = scene.add.graphics();
+    art.fillStyle(colorNumber(color), 0.12).fillCircle(0, 0, 28);
     const asset = content.assets.images.fragment;
     const image = createAssetImage(scene, content, "fragment", 0, 0, asset?.displayWidth ?? 32, asset?.displayHeight ?? 38);
     if (image) this.visual.add(image);
-    else { const note = scene.add.graphics(); drawNote(note, colorNumber(color)); this.visual.add(note); }
-    const text = scene.add.text(0, 35, label, { fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif', fontSize: "12px", color: "#71816c" }).setOrigin(0.5);
-    this.visual.add(text);
-    scene.tweens.add({ targets: this.visual, y: y - 6, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.InOut", delay: x % 500 });
+    else drawJar(art, colorNumber(color), 0, 0, 0.95);
+    this.visual.addAt(art, 0);
+    this.reset();
+  }
+
+  get isCollected(): boolean { return this.collected; }
+  distanceTo(x: number, feetY: number): number { return Math.hypot(x - this.definition.x, feetY - 26 - this.definition.y); }
+
+  reveal(): void {
+    if (this.collected) return;
+    this.scene.tweens.killTweensOf(this.visual);
+    this.visual.setVisible(true).setAlpha(1).setScale(1).setPosition(this.definition.x, this.definition.y);
+    this.clickTarget.setVisible(true);
+    (this.trigger.body as Phaser.Physics.Arcade.StaticBody).enable = true;
+    this.scene.tweens.add({ targets: this.visual, y: this.definition.y - 6, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.InOut" });
   }
 
   collect(): void {
     if (this.collected) return;
     this.collected = true;
     (this.trigger.body as Phaser.Physics.Arcade.StaticBody).enable = false;
+    this.clickTarget.setVisible(false);
     this.scene.tweens.killTweensOf(this.visual);
-    this.scene.tweens.add({ targets: this.visual, y: this.visual.y - 34, alpha: 0, scale: 1.3, duration: 280, onComplete: () => this.visual.destroy() });
+    this.scene.tweens.add({ targets: this.visual, y: this.visual.y - 34, alpha: 0, scale: 0.7, duration: 280,
+      onComplete: () => { if (this.collected) this.visual.setVisible(false); } });
+  }
+
+  reset(): void {
+    this.scene.tweens.killTweensOf(this.visual);
+    this.collected = false;
+    this.clickTarget.setVisible(false);
+    this.visual.setVisible(false).setAlpha(1).setScale(1).setPosition(this.definition.x, this.definition.y);
+    (this.trigger.body as Phaser.Physics.Arcade.StaticBody).enable = false;
   }
 }

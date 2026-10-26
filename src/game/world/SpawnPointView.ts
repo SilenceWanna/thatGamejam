@@ -21,13 +21,13 @@ export class SpawnPointView {
       art.fillStyle(0x75866b).fillRoundedRect(-21, -4, 42, 5, 2);
       visual.add(art);
     }
-    this.label = scene.add.text(0, 24, "旋律的起点", { fontSize: "12px", color: "#5e715b", fontFamily: '"PingFang SC", sans-serif' }).setOrigin(0.5);
+    this.label = scene.add.text(0, 24, "回忆点 · 苏醒之地", { fontSize: "12px", color: "#5e715b", fontFamily: '"PingFang SC", sans-serif' }).setOrigin(0.5);
     visual.add(this.label);
     scene.tweens.add({ targets: this.ring, alpha: 0.5, duration: 1800, yoyo: true, repeat: -1, ease: "Sine.InOut" });
   }
 
   setReady(ready: boolean): void {
     this.ring.setStrokeStyle(3, ready ? 0xb08b3b : 0xa59c64, 0.9).setFillStyle(0xe1cd87, ready ? 0.4 : 0.13);
-    this.label.setText(ready ? "← 回到这里，拼回旋律" : "旋律的起点");
+    this.label.setText(ready ? "← 回到这里，还原春天" : "回忆点 · 苏醒之地");
   }
 }

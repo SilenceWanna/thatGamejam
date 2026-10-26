@@ -1,33 +1,35 @@
 # 素材替换与关卡配置
 
-所有相对素材路径都相对于 `public/content/level-01/`。例如 `images/player.png` 指向该关目录中的 `images/player.png`。推荐把图片放在 `images/`，音频放在 `audio/`。也支持以 `/` 开头的站点绝对路径以及 HTTP 地址；跨域资源需要资源服务器提供相应 CORS 许可。
+资源入口集中在 `public/content/level-01/level.json` 和 `assets.json`。所有相对路径以该关目录为起点，推荐图片放入 `images/`，音频放入 `audio/`。支持站点绝对路径和具备 CORS 许可的 HTTP 地址。修改 JSON 或替换同名素材后刷新页面重新加载。
 
-修改 JSON 或替换资源后刷新页面。开发模式会对代码改动自动刷新，但外部配置和同名资源建议手动刷新，以便清除本次关卡缓存。
+## 图片清单
 
-## 图片清单：assets.json 的 images
+`file: null` 使用基本图形。正式图片接入不改变地形碰撞体或角色控制参数。
 
-| 键 | 用途 | 显示约定 |
-| --- | --- | --- |
-| `background` | 整关背景 | 拉伸到 1280×720；遮挡层与平台仍单独绘制 |
-| `ground` | 地面图 | 拉伸到地面碰撞区域，当前为 1280×92 |
-| `platform` | 三个平台共用图片 | 拉伸到各平台宽高，当前 184×26 |
-| `player` | 游戏中可移动的角色图片/序列帧 | 默认 48×64，锚点为底部中央 |
-| `fragment` | 四个收集物共用图片 | 默认 32×38，锚点为中央，保留颜色光圈和名称 |
-| `spawnPoint` | 出生点/旋律起点图片 | 默认 76×92，置于出生点上方 |
+| images 键 | 用途与默认显示约定 |
+| --- | --- |
+| `background` | 混乱状态基础背景，1280×720 |
+| `backgroundRestored` | 恢复后的基础背景，1280×720；位于平台与角色后方 |
+| `springDisorder` | 混乱天气叠加层，1280×720，透明背景 |
+| `springRestored` | 恢复后花草等叠加层，1280×720，透明背景 |
+| `ground` | 地面，当前 1280×92 |
+| `platform` | 三个平台共用，按各平台宽高拉伸，当前 184×26 |
+| `player` | 游戏中的角色图片或序列帧，默认 48×64，底部中央锚点 |
+| `fragment` | 显现后的世界收集物，默认 32×38；未填写时绘制装着音符的玻璃罐 |
+| `jar` | 音序器上方罐子卡片和角色举罐表现，共用图片；其他空罐和槽位仍保留图形反馈 |
+| `sourceWind` / `sourceRain` / `sourceSprout` / `sourceBird` | 旧来源图片键预留；当前不绘制来源图形或场景标签，只显示显现后的声音罐 |
+| `spawnPoint` | 左侧回忆点/出生点，默认 76×92 |
+| `exitClosed` / `exitOpen` | 季节出口冰层与藤蔓，默认 64×92 |
 
-`file: null` 表示继续使用基本图形。接入单张透明 PNG/WebP 的例子：
+例如单张角色图片：
 
 ```json
-"player": {
-  "file": "images/player.png",
-  "displayWidth": 48,
-  "displayHeight": 64
-}
+"player": { "file": "images/player.png", "displayWidth": 48, "displayHeight": 64 }
 ```
 
-角色碰撞体仍由 `level.json` 的 `player.bodyWidth` 和 `player.bodyHeight` 决定，不会随图片分辨率变化。人物图应尽量裁去多余透明边缘，脚底与图片底部对齐。若后续要增加对话立绘，可新增图片键并在对应表现组件中使用；当前 `player` 表示场景内角色，并非独立对话立绘。
+角色碰撞矩形仍由 `level.json` 的 `player.bodyWidth` 和 `player.bodyHeight` 决定。图片建议裁去多余透明边，脚底对齐图片底部，默认朝右。独立对话立绘可另加图片键，在对应叙事 UI 中接入。
 
-角色支持等尺寸网格序列帧。帧序号从 0 开始，逐行排列：
+等尺寸网格序列帧示例（序号从 0 开始，逐行排列）：
 
 ```json
 "player": {
@@ -40,52 +42,64 @@
   "animations": {
     "idle": [0, 1],
     "run": [2, 3, 4, 5],
-    "jump": [6]
+    "jump": [6],
+    "interact": [7, 8]
   }
 }
 ```
 
-`idle` 和 `run` 循环，`jump` 播放一次。未提供某个动画时沿用当前帧。角色朝向通过表现容器水平翻转，原图建议默认朝右。平台目前按矩形碰撞，图片轮廓变化不会自动生成碰撞形状。
+idle/run 循环，jump/interact 播放一次。按 F 显现和拾取声音时触发举罐/互动表现。图片未提供时仍有基本图形角色和短暂举罐效果。
 
-## 音频清单：assets.json 的 audio
+## 乐句接口
 
-音频条目使用 `files` 和 `volume`：
+三个阶段明确分离，正式音乐分别替换对应音频文件即可，不需要修改程序：
+
+| level.json 的 puzzle 字段 | assets.json 音频键 | 当前临时文件 | 使用时机 |
+| --- | --- | --- | --- |
+| `openingPhraseAudioKey` | `openingPhrase` | `audio/opening-phrase.wav` | 点击开场后自动播放一次清晰主题，不扣答题提示 |
+| `memoryPhraseAudioKey` | `memoryPhrase` | `audio/memory-phrase.wav` | 答题窗口本轮仅一次的模糊回忆 |
+| `restoredPhraseAudioKey` | `restoredPhrase` | `audio/restored-phrase.wav` | 答案正确后的完整恢复主题 |
+
+模糊版目前由低通与短回声生成，与开场文件的 PCM 数据不同，保留相同拍点与时长。正式模糊版本可以带滤波、混响或缺失音色，仍应保留可辨认节奏。开场和恢复目前共享旋律内容，但引用独立文件，便于后续替换不同编曲。
+
+`fullPhraseAudioKey` 作为旧配置兼容字段保留，当前指向 `openingPhrase`，不提供不受限制的清晰版重听按钮。旧的 fullPhrase、fragmentMist 等资源清单项仍保留，当前春季流程使用新的三版乐句和自然声音罐键。
+
+## 声音罐、节拍与音效
+
+| audio 键 | 用途 |
+| --- | --- |
+| `jarWind` / `jarRain` / `jarSprout` / `jarBird` | 四种最终声音罐，依次对应春风、雨滴、嫩芽、鸟鸣 |
+| `bgm` | 春季环境循环；试听乐句时音量降低至原来的 16% |
+| `jarPlace` / `jarRemove` / `jarReset` | 放入/交换、移除、清空三个独立交互音效接口，临时共用 click.wav |
+| `reveal` | 按 F 显现声音 |
+| `collect` / `jump` | 收集、跳跃反馈 |
+| `weatherRestore` | 天气恢复魔法 |
+| `incorrect` / `success` / `click` | 错误、通用成功、通用 UI；旧接口保留 |
+
+音频条目使用下面的格式，`files` 是同一个声音的格式备选，浏览器选一种兼容格式，不是多段连播：
 
 ```json
-"fragmentMist": {
-  "files": ["audio/mist.wav", "audio/mist.mp3"],
-  "volume": 0.7
-}
+"jarWind": { "files": ["audio/wind.wav", "audio/wind.mp3"], "volume": 0.7 }
 ```
 
-同一个 `files` 数组表示**同一声音的格式备选**，浏览器会选择兼容格式；不是依次播放的多段声音。音量范围为 0～1。可用空数组停用可选音效；解题所需的整句与四段建议始终提供可播放文件。
+volume 范围为 0～1。空数组可以停用可选音效；三版乐句与四个罐子应保留可播放文件。
 
-| 键 | 用途 |
-| --- | --- |
-| `bgm` | 循环背景音；试听乐句时自动降低到原音量的 16% |
-| `fullPhrase` | 完整参考乐句和通关后的乐句 |
-| `fragmentMist` / `fragmentBloom` / `fragmentAmber` / `fragmentFern` | 四个片段，分别由片段的 `audioKey` 引用 |
-| `collect` | 拾取片段 |
-| `jump` | 跳跃 |
-| `success` | 排列成功 |
-| `incorrect` | 排列错误 |
-| `click` | 排序操作反馈 |
+音序器以 `bpm` 和 `beatsPerFragment` 安排起音时刻：间隔秒数 = 60 / BPM × 每罐拍数。当前为 90 BPM、一罐一拍，四罐约 2.667 秒。它使用 Web Audio 的时钟，**不会因为某只罐子的采样较短或较长而推迟下一个拍点**；尾音允许重叠，播放状态等待全部尾音结束。音频素材应按这一节拍制作，避免附加静音。仅不支持 Web Audio 的浏览器才使用兼容回退，精度取决于浏览器。
 
-正式音频推荐保留无损母版，Demo 的四段优先使用 PCM WAV。统一采样率、声道、响度，按准确切点裁切，避免首尾额外静音。Web Audio 会预解码，并按每段实际时长排程；如果文件本身包含静音、编码器延迟或切分错误，排程无法自动修复。完整乐句应与四段按答案顺序拼接后的声音一致。
+临时音频为 22050 Hz、16 bit PCM、单声道，已提交项目；可运行 `python3 scripts/generate_placeholder_audio.py` 重新生成。正式母带可按策划提供 48 kHz / 24 bit WAV，再导出 Web 版。保留统一采样率、响度、起音与尾音，四罐按正确顺序应能复原主题。
 
-当前临时音频为 22050 Hz、单声道、16 bit PCM，每段 1.6 秒，整句 6.4 秒。替换正式音频时无需保持这些时长，播放器读取实际解码时长。普通现代 PC 浏览器使用 Web Audio；不支持时回退到 Phaser 的音频播放，此时连续片段的精度取决于浏览器。
+## 关卡数据
 
-## 布局与规则：level.json
+- 坐标左上为原点、Y 向下，单位为逻辑像素；出生点使用脚底坐标。
+- 逻辑画面 1280×720；窗口缩放无需改配置。修改逻辑分辨率还需同步 UI 布局。
+- `platforms` 的 x 为中心，topY 为承接顶面，碰撞尺寸独立于图片。
+- `fragments` 包含 id、label、color、坐标、audioKey、sourceType 与 interactionRadius。sourceType 保留 wind/rain/sprout/bird 声音分类，不再绘制对应来源图形。
+- 片段列表的顺序是罐子栏顺序；正确顺序由 `puzzle.correctOrder` 单独决定。当前答案为春风→雨滴→嫩芽→鸟鸣。
+- `puzzle.maxAttempts: 3`；每轮只听一次模糊回忆。`allowUnlimitedAttemptsAfterExhaustion: false` 是本次确认的规则，不要为了沿用策划旧规则擅自开启。
+- `puzzle.allowReferencePlayback` 允许或禁用答题模糊提示，不影响开场主题。
+- `story` 保存苏醒、目标、恢复叙事，`season` 保存季节、出口 X、下一季标签和两种环境色调。
+- `nextLevelId: null` 显示春季 Demo 结束；正式接入夏季时创建该关目录的两个 JSON，再填写对应目录名。
+- 三个平台距地面 140/280/120，跳跃最大高度约 201。修改物理或布局后需重新试玩，并运行可达性测试。
+- 当前 UI 针对四只罐子设计。增加数量或改画布尺寸需调整界面布局。
 
-- 坐标原点在左上角，X 向右、Y 向下，单位为逻辑像素。角色出生位置使用脚底 Y 坐标。
-- `world` 定义逻辑画面与地面高度。当前 UI 按 1280×720 设计，修改逻辑分辨率时也要调整 UI 布局；仅调整浏览器窗口无需改配置。
-- `platforms` 中的 `x` 是中心 X，`topY` 是承接角色的顶面，宽高决定独立矩形碰撞体。
-- `fragments` 定义片段 ID、显示名、颜色、中心坐标和音频键。当前一张共用收集物图片，通过标签和颜色区分四段。
-- `puzzle.correctOrder` 是正确片段 ID 顺序，与收集顺序、文件名和显示顺序无关。
-- `puzzle.allowReferencePlayback` 控制解题前能否试听完整乐句；设为 `false` 时隐藏游戏和排序界面的参考试听。
-- `nextLevelId` 为 `null` 时显示 Demo 结束；填写另一个关卡目录名时，通关按钮会加载对应目录的两个 JSON。Demo 仅交付第一关。
-- 片段数量由数据驱动，但当前排序面板的四列布局针对本 Demo 的四段设计；大幅增加数量需调整 UI。
-
-当前地面到左、中、右平台的高度分别为 140、280、120。跳速为 750 像素/秒，重力为 1400 像素/秒²，理想最大跳高约 201 像素。两侧到中央的高差分别为 140、160，因此两侧均可到达中央；地面不能直达中央。修改移动参数或布局后请重新试玩，`pnpm test` 也会检查这些关卡约束。
-
-运行时会校验重复 ID、缺失音频引用、无效答案与基础数值。图片文件读取失败会回退图形；文件加载失败也会在开始游戏后的 HUD 中提示。
+配置校验会提前检查重复 ID、缺失音频键、无效答案、BPM、尝试次数、季节字段及动画帧等。文件加载失败会有 HUD 提示；没有正式图片时继续使用基本图形。

@@ -79,3 +79,14 @@ test("四段临时音频按正确顺序拼接后与完整乐句逐样本相同",
   assert.deepEqual(Buffer.concat(segments), full);
   assert.ok(full.some(value => value !== 0), "临时音频包含实际声音");
 });
+
+test("开场、模糊回忆、恢复有独立音频接口，模糊素材确实不同于开场", () => {
+  const keys = [level.puzzle.openingPhraseAudioKey, level.puzzle.memoryPhraseAudioKey, level.puzzle.restoredPhraseAudioKey];
+  assert.equal(new Set(keys).size, 3);
+  const buffers = keys.map(key => wavData(assets.audio[key].files[0]));
+  assert.notDeepEqual(buffers[0], buffers[1]);
+  assert.equal(buffers[0].length, buffers[1].length);
+  const missing = structuredClone(level);
+  missing.puzzle.memoryPhraseAudioKey = "missing-memory";
+  assert.throws(() => validateContent(missing, assets), /memoryPhraseAudioKey/);
+});

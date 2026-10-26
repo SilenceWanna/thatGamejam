@@ -4,9 +4,13 @@ import type { InputSource, PlayerInput } from "./InputSource";
 export class KeyboardInput implements InputSource {
   private readonly held = new Set<string>();
   private jumpQueued = false;
+  private revealQueued = false;
+  private interactQueued = false;
   private readonly onKeyDown = (event: KeyboardEvent): void => {
-    if (["KeyA", "KeyD", "Space"].includes(event.code)) event.preventDefault();
+    if (["KeyA", "KeyD", "Space", "ArrowLeft", "ArrowRight", "KeyF", "KeyE"].includes(event.code)) event.preventDefault();
     if (event.code === "Space" && !event.repeat && !this.held.has("Space")) this.jumpQueued = true;
+    if (event.code === "KeyF" && !event.repeat && !this.held.has("KeyF")) this.revealQueued = true;
+    if (event.code === "KeyE" && !event.repeat && !this.held.has("KeyE")) this.interactQueued = true;
     this.held.add(event.code);
   };
   private readonly onKeyUp = (event: KeyboardEvent): void => { this.held.delete(event.code); };
@@ -19,12 +23,19 @@ export class KeyboardInput implements InputSource {
   }
 
   sample(): PlayerInput {
-    const input = { moveAxis: Number(this.held.has("KeyD")) - Number(this.held.has("KeyA")), jumpPressed: this.jumpQueued };
+    const input = {
+      moveAxis: Number(this.held.has("KeyD") || this.held.has("ArrowRight")) - Number(this.held.has("KeyA") || this.held.has("ArrowLeft")),
+      jumpPressed: this.jumpQueued,
+      revealPressed: this.revealQueued,
+      interactPressed: this.interactQueued
+    };
     this.jumpQueued = false;
+    this.revealQueued = false;
+    this.interactQueued = false;
     return input;
   }
 
-  reset(): void { this.held.clear(); this.jumpQueued = false; }
+  reset(): void { this.held.clear(); this.jumpQueued = false; this.revealQueued = false; this.interactQueued = false; }
   destroy(): void {
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);

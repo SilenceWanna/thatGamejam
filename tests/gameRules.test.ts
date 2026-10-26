@@ -9,6 +9,7 @@ test("必须集齐全部片段并返回出生点，才允许完成关卡", () =>
   const progress = new LevelProgress(ids);
   assert.equal(progress.enterSpawnPoint(), false);
   assert.equal(progress.complete(true), false);
+  progress.revealFragments();
   for (const id of ids.slice(0, 3)) assert.equal(progress.collect(id), true);
   assert.equal(progress.phase, "exploring");
   assert.equal(progress.enterSpawnPoint(), false);
@@ -28,6 +29,7 @@ test("必须集齐全部片段并返回出生点，才允许完成关卡", () =>
 test("重复碰撞与未知片段不会增加收集进度", () => {
   const progress = new LevelProgress(ids);
   assert.equal(progress.collect("unknown"), false);
+  progress.revealFragments();
   assert.equal(progress.collect("mist"), true);
   assert.equal(progress.collect("mist"), false);
   assert.equal(progress.count, 1);
@@ -35,6 +37,7 @@ test("重复碰撞与未知片段不会增加收集进度", () => {
 
 test("退出排序保留所有收集进度，可以再次进入", () => {
   const progress = new LevelProgress(ids);
+  progress.revealFragments();
   ids.forEach(id => progress.collect(id));
   progress.enterSpawnPoint();
   progress.leaveArrangement();

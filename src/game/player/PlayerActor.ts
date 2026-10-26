@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { LevelContent, PlayerAnimationName } from "../../content/types";
 import type { PlayerInput } from "../../input/InputSource";
 import { assetKey } from "../../content/loadLevelContent";
+import { createAssetImage, drawJar } from "../art/assetImages";
 
 export class PlayerActor {
   readonly collision: Phaser.GameObjects.Rectangle;
@@ -13,6 +14,8 @@ export class PlayerActor {
   private jumpConsumed = false;
   private facing = 1;
   private animationTime = 0;
+  private interactionTime = 0;
+  private readonly interactionJar: Phaser.GameObjects.Container;
 
   constructor(scene: Phaser.Scene, private readonly content: LevelContent, private readonly onJump: () => void) {
     const { player, spawn } = content.level;
@@ -28,7 +31,7 @@ export class PlayerActor {
       this.visual.add(this.sprite);
       for (const [name, frames] of Object.entries(asset.animations ?? {})) {
         const animationKey = `${key}:${name}`;
-        if (frames && !scene.anims.exists(animationKey)) scene.anims.create({ key: animationKey, frames: frames.map(frame => ({ key, frame })), frameRate: asset.frameRate ?? 10, repeat: name === "jump" ? 0 : -1 });
+        if (frames && !scene.anims.exists(animationKey)) scene.anims.create({ key: animationKey, frames: frames.map(frame => ({ key, frame })), frameRate: asset.frameRate ?? 10, repeat: name === "idle" || name === "run" ? -1 : 0 });
       }
     } else {
       const art = scene.add.graphics();
@@ -44,6 +47,11 @@ export class PlayerActor {
       art.fillStyle(0xd3b46c).fillRoundedRect(8, -31, 7, 20, 2);
       this.visual.add(art);
     }
+    this.interactionJar = scene.add.container(21, -36).setVisible(false);
+    const jar = createAssetImage(scene, content, "jar", 0, 0, 18, 23);
+    if (jar) this.interactionJar.add(jar);
+    else { const art = scene.add.graphics(); drawJar(art, 0xd5bc79, 0, 0, 0.5); this.interactionJar.add(art); }
+    this.visual.add(this.interactionJar);
   }
 
   get x(): number { return this.body.center.x; }
@@ -69,12 +77,16 @@ export class PlayerActor {
       this.onJump();
     }
     this.animationTime += delta;
+    this.interactionTime = Math.max(0, this.interactionTime - delta);
+    this.interactionJar.setVisible(this.interactionTime > 0);
     const moving = input.moveAxis !== 0 && this.grounded;
     this.visual.setPosition(this.x, this.feetY - (moving ? Math.sin(this.animationTime * 0.022) * 1.5 : 0)).setScale(this.facing, 1);
-    const state: PlayerAnimationName = !this.grounded ? "jump" : moving ? "run" : "idle";
+    const state: PlayerAnimationName = this.interactionTime > 0 && this.grounded ? "interact" : !this.grounded ? "jump" : moving ? "run" : "idle";
     const key = `${assetKey(this.content.level.id, "player")}:${state}`;
     if (this.sprite && this.sprite.scene.anims.exists(key)) this.sprite.play(key, true);
   }
+
+  playInteraction(): void { this.interactionTime = 380; }
 
   stop(): void { this.body.setVelocity(0); this.bufferRemaining = 0; this.coyoteRemaining = 0; }
   resetToSpawn(): void {

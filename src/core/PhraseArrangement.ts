@@ -16,6 +16,7 @@ export class PhraseArrangement {
   get values(): readonly (string | null)[] { return [...this.slots]; }
   get isFilled(): boolean { return this.slots.every(id => id !== null); }
   get isCorrect(): boolean { return this.slots.every((id, index) => id === this.answer[index]); }
+  get correctPositions(): readonly boolean[] { return this.slots.map((id, index) => id === this.answer[index]); }
 
   place(fragmentId: string, targetIndex: number): void {
     if (!this.fragmentIds.has(fragmentId)) throw new Error(`未知片段：${fragmentId}`);

@@ -1,0 +1,47 @@
+{
+  "stages": [
+    {
+      "id": "spring",
+      "label": "春",
+      "theme": "萌发与解冻",
+      "levelId": "level-01",
+      "status": "playable"
+    },
+    {
+      "id": "summer",
+      "label": "夏",
+      "theme": "生长与雷雨",
+      "sounds": [
+        "阳光",
+        "溪流",
+        "蝉鸣",
+        "雷声"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "autumn",
+      "label": "秋",
+      "theme": "成熟与凋落",
+      "sounds": [
+        "果实",
+        "木头",
+        "落叶",
+        "秋风"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "winter",
+      "label": "冬",
+      "theme": "凝结与沉眠",
+      "sounds": [
+        "寒风",
+        "雪落",
+        "冰晶",
+        "寂静"
+      ],
+      "status": "planned"
+    }
+  ]
+}

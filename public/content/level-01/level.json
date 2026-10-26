@@ -1,29 +1,119 @@
 {
   "id": "level-01",
-  "title": "初醒之森",
-  "subtitle": "收集四段声音，拼回林间的第一支旋律。",
-  "world": { "width": 1280, "height": 720, "groundY": 628 },
-  "spawn": { "x": 136, "feetY": 628, "activationRadius": 66 },
+  "title": "春 · 解冻的序曲",
+  "subtitle": "唤醒春风、雨滴、嫩芽和鸟鸣，让失序的春天重新流动。",
+  "world": {
+    "width": 1280,
+    "height": 720,
+    "groundY": 628
+  },
+  "spawn": {
+    "x": 136,
+    "feetY": 628,
+    "activationRadius": 66
+  },
   "player": {
-    "moveSpeed": 290, "jumpSpeed": 750, "gravity": 1400,
-    "bodyWidth": 30, "bodyHeight": 52,
-    "coyoteTimeMs": 100, "jumpBufferMs": 120
+    "moveSpeed": 290,
+    "jumpSpeed": 750,
+    "gravity": 1400,
+    "bodyWidth": 30,
+    "bodyHeight": 52,
+    "coyoteTimeMs": 100,
+    "jumpBufferMs": 120
   },
   "platforms": [
-    { "id": "left-platform", "x": 420, "topY": 488, "width": 184, "height": 26 },
-    { "id": "center-platform", "x": 650, "topY": 348, "width": 184, "height": 26 },
-    { "id": "right-platform", "x": 880, "topY": 508, "width": 184, "height": 26 }
+    {
+      "id": "left-platform",
+      "x": 420,
+      "topY": 488,
+      "width": 184,
+      "height": 26
+    },
+    {
+      "id": "center-platform",
+      "x": 650,
+      "topY": 348,
+      "width": 184,
+      "height": 26
+    },
+    {
+      "id": "right-platform",
+      "x": 880,
+      "topY": 508,
+      "width": 184,
+      "height": 26
+    }
   ],
   "fragments": [
-    { "id": "amber", "label": "琥珀", "color": "#bd8e48", "x": 420, "y": 449, "audioKey": "fragmentAmber" },
-    { "id": "mist", "label": "晨雾", "color": "#7895ab", "x": 650, "y": 309, "audioKey": "fragmentMist" },
-    { "id": "fern", "label": "蕨叶", "color": "#639080", "x": 880, "y": 469, "audioKey": "fragmentFern" },
-    { "id": "bloom", "label": "花影", "color": "#b77e85", "x": 1094, "y": 589, "audioKey": "fragmentBloom" }
+    {
+      "id": "sprout",
+      "label": "嫩芽",
+      "color": "#639080",
+      "x": 880,
+      "y": 469,
+      "audioKey": "jarSprout",
+      "sourceType": "sprout",
+      "interactionRadius": 72
+    },
+    {
+      "id": "wind",
+      "label": "春风",
+      "color": "#bd8e48",
+      "x": 420,
+      "y": 449,
+      "audioKey": "jarWind",
+      "sourceType": "wind",
+      "interactionRadius": 72
+    },
+    {
+      "id": "bird",
+      "label": "鸟鸣",
+      "color": "#b77e85",
+      "x": 1094,
+      "y": 589,
+      "audioKey": "jarBird",
+      "sourceType": "bird",
+      "interactionRadius": 72
+    },
+    {
+      "id": "rain",
+      "label": "雨滴",
+      "color": "#7895ab",
+      "x": 650,
+      "y": 309,
+      "audioKey": "jarRain",
+      "sourceType": "rain",
+      "interactionRadius": 72
+    }
   ],
   "puzzle": {
-    "correctOrder": ["mist", "bloom", "amber", "fern"],
+    "correctOrder": [
+      "wind",
+      "rain",
+      "sprout",
+      "bird"
+    ],
     "allowReferencePlayback": true,
-    "fullPhraseAudioKey": "fullPhrase"
+    "fullPhraseAudioKey": "openingPhrase",
+    "openingPhraseAudioKey": "openingPhrase",
+    "memoryPhraseAudioKey": "memoryPhrase",
+    "restoredPhraseAudioKey": "restoredPhrase",
+    "maxAttempts": 3,
+    "allowUnlimitedAttemptsAfterExhaustion": false,
+    "bpm": 90,
+    "beatsPerFragment": 1
   },
-  "nextLevelId": null
+  "nextLevelId": null,
+  "story": {
+    "awakening": "魔法师从长久的沉睡中醒来。维系四季的乐章破碎了，花朵结冰，雨滴停在半空。",
+    "objective": "用 F 唤醒隐藏的声音，将春风、雨滴、嫩芽和鸟鸣装入玻璃罐，回到左侧的回忆点还原春天。",
+    "restored": "冰雪消融，花草重新开放。藤蔓接起通往夏季的道路，四季乐章终于找回了第一拍。"
+  },
+  "season": {
+    "id": "spring",
+    "exitX": 1208,
+    "nextSeasonLabel": "夏 · 生长与雷雨",
+    "disorderTint": "#a8bdcf",
+    "restoredTint": "#efce89"
+  }
 }

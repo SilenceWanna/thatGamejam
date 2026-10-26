@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import type { LevelContent } from "../content/types";
 import { assetKey } from "../content/loadLevelContent";
+import { sequenceOffsets } from "../core/melodyTiming";
+import type { MelodyTiming } from "../core/melodyTiming";
 
 /** 所有声音通过这里播放。乐句使用 Web Audio 时钟排程，不依赖渲染帧率或 setTimeout。 */
 export class AudioService {
@@ -43,7 +45,7 @@ export class AudioService {
     return this.muted;
   }
 
-  playSequence(names: readonly string[], onSegment?: (index: number | null) => void): boolean {
+  playSequence(names: readonly string[], onSegment?: (index: number | null) => void, timing?: MelodyTiming): boolean {
     this.stopPhrase();
     if (!names.length || names.some(name => !this.exists(name))) return false;
     this.sequenceCallback = onSegment;
@@ -60,8 +62,12 @@ export class AudioService {
     this.sequenceGain = context.createGain();
     this.sequenceGain.gain.value = this.muted ? 0 : 1;
     this.sequenceGain.connect(context.destination);
-    let startTime = context.currentTime + 0.035;
-    for (const name of names) {
+    const baseTime = context.currentTime + 0.035;
+    const offsets = timing ? sequenceOffsets(names.length, timing) : null;
+    let nextStart = baseTime;
+    let endTime = baseTime;
+    for (const [index, name] of names.entries()) {
+      const startTime = offsets ? baseTime + offsets[index] : nextStart;
       const source = context.createBufferSource();
       const volume = context.createGain();
       source.buffer = this.scene.cache.audio.get(this.key(name)) as AudioBuffer;
@@ -71,9 +77,16 @@ export class AudioService {
       this.sequenceStarts.push(startTime);
       source.start(startTime);
       this.sources.push(source);
-      startTime += source.buffer.duration;
+      nextStart = startTime + source.buffer.duration;
+      endTime = Math.max(endTime, nextStart);
     }
-    this.sources[this.sources.length - 1].onended = () => {
+    // 静音时钟等待所有尾音结束，短采样或重叠尾音都不会改变固定拍点。
+    const clock = context.createBufferSource();
+    clock.buffer = context.createBuffer(1, Math.max(1, Math.ceil((endTime - baseTime) * context.sampleRate)), context.sampleRate);
+    clock.connect(this.sequenceGain);
+    clock.start(baseTime);
+    this.sources.push(clock);
+    clock.onended = () => {
       if (generation === this.generation) this.stopPhrase();
     };
     return true;

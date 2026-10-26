@@ -1,23 +1,198 @@
 {
   "images": {
-    "background": { "file": null },
-    "ground": { "file": null },
-    "platform": { "file": null },
-    "player": { "file": null, "displayWidth": 48, "displayHeight": 64 },
-    "fragment": { "file": null, "displayWidth": 32, "displayHeight": 38 },
-    "spawnPoint": { "file": null, "displayWidth": 76, "displayHeight": 92 }
+    "background": {
+      "file": null
+    },
+    "ground": {
+      "file": null
+    },
+    "platform": {
+      "file": null
+    },
+    "player": {
+      "file": null,
+      "displayWidth": 48,
+      "displayHeight": 64
+    },
+    "fragment": {
+      "file": null,
+      "displayWidth": 32,
+      "displayHeight": 38
+    },
+    "spawnPoint": {
+      "file": null,
+      "displayWidth": 76,
+      "displayHeight": 92
+    },
+    "backgroundRestored": {
+      "file": null
+    },
+    "springDisorder": {
+      "file": null
+    },
+    "springRestored": {
+      "file": null
+    },
+    "sourceWind": {
+      "file": null
+    },
+    "sourceRain": {
+      "file": null
+    },
+    "sourceSprout": {
+      "file": null
+    },
+    "sourceBird": {
+      "file": null
+    },
+    "jar": {
+      "file": null
+    },
+    "exitClosed": {
+      "file": null
+    },
+    "exitOpen": {
+      "file": null
+    }
   },
   "audio": {
-    "bgm": { "files": ["audio/ambience.wav"], "volume": 0.28 },
-    "fullPhrase": { "files": ["audio/full-phrase.wav"], "volume": 0.7 },
-    "fragmentMist": { "files": ["audio/fragment-mist.wav"], "volume": 0.7 },
-    "fragmentBloom": { "files": ["audio/fragment-bloom.wav"], "volume": 0.7 },
-    "fragmentAmber": { "files": ["audio/fragment-amber.wav"], "volume": 0.7 },
-    "fragmentFern": { "files": ["audio/fragment-fern.wav"], "volume": 0.7 },
-    "collect": { "files": ["audio/collect.wav"], "volume": 0.5 },
-    "jump": { "files": ["audio/jump.wav"], "volume": 0.17 },
-    "success": { "files": ["audio/success.wav"], "volume": 0.5 },
-    "incorrect": { "files": ["audio/incorrect.wav"], "volume": 0.25 },
-    "click": { "files": ["audio/click.wav"], "volume": 0.22 }
+    "bgm": {
+      "files": [
+        "audio/ambience.wav"
+      ],
+      "volume": 0.28
+    },
+    "fullPhrase": {
+      "files": [
+        "audio/full-phrase.wav"
+      ],
+      "volume": 0.7
+    },
+    "fragmentMist": {
+      "files": [
+        "audio/fragment-mist.wav"
+      ],
+      "volume": 0.7
+    },
+    "fragmentBloom": {
+      "files": [
+        "audio/fragment-bloom.wav"
+      ],
+      "volume": 0.7
+    },
+    "fragmentAmber": {
+      "files": [
+        "audio/fragment-amber.wav"
+      ],
+      "volume": 0.7
+    },
+    "fragmentFern": {
+      "files": [
+        "audio/fragment-fern.wav"
+      ],
+      "volume": 0.7
+    },
+    "collect": {
+      "files": [
+        "audio/collect.wav"
+      ],
+      "volume": 0.5
+    },
+    "jump": {
+      "files": [
+        "audio/jump.wav"
+      ],
+      "volume": 0.17
+    },
+    "success": {
+      "files": [
+        "audio/success.wav"
+      ],
+      "volume": 0.5
+    },
+    "incorrect": {
+      "files": [
+        "audio/incorrect.wav"
+      ],
+      "volume": 0.25
+    },
+    "click": {
+      "files": [
+        "audio/click.wav"
+      ],
+      "volume": 0.22
+    },
+    "openingPhrase": {
+      "files": [
+        "audio/opening-phrase.wav"
+      ],
+      "volume": 0.7
+    },
+    "memoryPhrase": {
+      "files": [
+        "audio/memory-phrase.wav"
+      ],
+      "volume": 0.7
+    },
+    "restoredPhrase": {
+      "files": [
+        "audio/restored-phrase.wav"
+      ],
+      "volume": 0.7
+    },
+    "jarWind": {
+      "files": [
+        "audio/jar-wind.wav"
+      ],
+      "volume": 0.7
+    },
+    "jarRain": {
+      "files": [
+        "audio/jar-rain.wav"
+      ],
+      "volume": 0.7
+    },
+    "jarSprout": {
+      "files": [
+        "audio/jar-sprout.wav"
+      ],
+      "volume": 0.7
+    },
+    "jarBird": {
+      "files": [
+        "audio/jar-bird.wav"
+      ],
+      "volume": 0.7
+    },
+    "reveal": {
+      "files": [
+        "audio/reveal.wav"
+      ],
+      "volume": 0.45
+    },
+    "weatherRestore": {
+      "files": [
+        "audio/weather-restore.wav"
+      ],
+      "volume": 0.45
+    },
+    "jarPlace": {
+      "files": [
+        "audio/click.wav"
+      ],
+      "volume": 0.22
+    },
+    "jarRemove": {
+      "files": [
+        "audio/click.wav"
+      ],
+      "volume": 0.22
+    },
+    "jarReset": {
+      "files": [
+        "audio/click.wav"
+      ],
+      "volume": 0.22
+    }
   }
 }

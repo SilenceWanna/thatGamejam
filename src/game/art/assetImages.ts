@@ -24,3 +24,12 @@ export function drawNote(graphics: Phaser.GameObjects.Graphics, color: number, x
   graphics.closePath();
   graphics.fillPath();
 }
+
+/** 玻璃罐与声音分层绘制：未收集的罐子可以保持空白，不提前显示隐藏音符。 */
+export function drawJar(graphics: Phaser.GameObjects.Graphics, color: number, x = 0, y = 0, scale = 1, filled = true): void {
+  graphics.fillStyle(0xffffff, 0.32).fillRoundedRect(x - 16 * scale, y - 17 * scale, 32 * scale, 37 * scale, 7 * scale);
+  graphics.lineStyle(1.4 * scale, color, filled ? 0.85 : 0.32).strokeRoundedRect(x - 16 * scale, y - 17 * scale, 32 * scale, 37 * scale, 7 * scale);
+  graphics.fillStyle(color, filled ? 0.8 : 0.25).fillRoundedRect(x - 13 * scale, y - 22 * scale, 26 * scale, 7 * scale, 2 * scale);
+  graphics.lineStyle(1, 0xffffff, 0.8).lineBetween(x - 10 * scale, y - 10 * scale, x - 10 * scale, y + 6 * scale);
+  if (filled) drawNote(graphics, color, x + 1 * scale, y, 0.7 * scale);
+}

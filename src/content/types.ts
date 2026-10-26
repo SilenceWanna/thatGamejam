@@ -14,6 +14,8 @@ export interface FragmentDefinition {
   x: number;
   y: number;
   audioKey: string;
+  sourceType: "wind" | "rain" | "sprout" | "bird";
+  interactionRadius: number;
 }
 
 export interface PlayerSettings {
@@ -35,11 +37,30 @@ export interface LevelDefinition {
   player: PlayerSettings;
   platforms: PlatformDefinition[];
   fragments: FragmentDefinition[];
-  puzzle: { correctOrder: string[]; allowReferencePlayback: boolean; fullPhraseAudioKey: string };
+  puzzle: {
+    correctOrder: string[];
+    allowReferencePlayback: boolean;
+    fullPhraseAudioKey: string;
+    openingPhraseAudioKey: string;
+    memoryPhraseAudioKey: string;
+    restoredPhraseAudioKey: string;
+    maxAttempts: number;
+    allowUnlimitedAttemptsAfterExhaustion: boolean;
+    bpm: number;
+    beatsPerFragment: number;
+  };
+  story: { awakening: string; objective: string; restored: string };
+  season: {
+    id: "spring" | "summer" | "autumn" | "winter";
+    exitX: number;
+    nextSeasonLabel: string;
+    disorderTint: string;
+    restoredTint: string;
+  };
   nextLevelId: string | null;
 }
 
-export type PlayerAnimationName = "idle" | "run" | "jump";
+export type PlayerAnimationName = "idle" | "run" | "jump" | "interact";
 
 export interface ImageAssetDefinition {
   file: string | null;
