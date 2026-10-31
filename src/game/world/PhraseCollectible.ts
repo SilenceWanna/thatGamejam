@@ -1,25 +1,28 @@
 import Phaser from "phaser";
 import type { FragmentDefinition, LevelContent } from "../../content/types";
-import { colorNumber, createAssetImage, drawJar } from "../art/assetImages";
+import { colorNumber } from "../art/assetImages";
+import { JarView } from "../art/JarView";
+import { WORLD_DEPTH } from "../art/renderLayers";
 import { uiText } from "../../ui/components";
 
 /** 声音罐不注册点击或碰撞拾取；由世界选择附近目标，收到交互动作后才收集。 */
 export class PhraseCollectible {
   private readonly visual: Phaser.GameObjects.Container;
   private readonly prompt: Phaser.GameObjects.Container;
+  private anchorX: number;
+  private anchorY: number;
   private collected = false;
   private revealed = false;
 
   /** 按片段位置与颜色创建瓶子和 E 提示；初始全部隐藏，不创建自动拾取碰撞区。 */
   constructor(private readonly scene: Phaser.Scene, content: LevelContent, readonly definition: FragmentDefinition) {
     const { x, y, color } = definition;
-    this.visual = scene.add.container(x, y).setDepth(3);
+    this.anchorX = x; this.anchorY = y;
+    this.visual = scene.add.container(x, y).setDepth(WORLD_DEPTH.actor);
     const art = scene.add.graphics();
     art.fillStyle(colorNumber(color), 0.12).fillCircle(0, 0, 28);
-    const asset = content.assets.images.fragment;
-    const image = createAssetImage(scene, content, "fragment", 0, 0, asset?.displayWidth ?? 32, asset?.displayHeight ?? 38);
-    if (image) this.visual.add(image);
-    else drawJar(art, colorNumber(color), 0, 0, 0.95);
+    const jar = new JarView(scene, content, definition, 0, 0, 38, 48, "low");
+    this.visual.add(jar.root);
     this.visual.addAt(art, 0);
     const badge = scene.add.graphics();
     badge.fillStyle(0xf8f6eb, 0.97).fillRoundedRect(-54, -16, 108, 32, 8);
@@ -32,7 +35,13 @@ export class PhraseCollectible {
   /** 瓶子已显现且本轮未收集时，才可进入附近目标选择。 */
   get canCollect(): boolean { return this.revealed && !this.collected; }
   /** 以配置中的固定瓶子位置计算互动距离，悬浮动画不会改变可收集范围。 */
-  distanceTo(x: number, y: number): number { return Math.hypot(x - this.definition.x, y - this.definition.y); }
+  distanceTo(x: number, y: number): number { return Math.hypot(x - this.anchorX, y - this.anchorY); }
+  /** 让移动的云与其声音瓶、交互区域及提示保持对齐。 */
+  setAnchor(x: number, y: number): void {
+    const dx = x - this.anchorX; const dy = y - this.anchorY;
+    this.anchorX = x; this.anchorY = y;
+    this.visual.x += dx; this.visual.y += dy; this.prompt.setPosition(x, y - 54);
+  }
   /** 显示或隐藏“按 E 收集”；未显现或已收集时强制隐藏。 */
   setPromptVisible(visible: boolean): void { this.prompt.setVisible(visible && this.canCollect); }
 
@@ -41,8 +50,8 @@ export class PhraseCollectible {
     if (this.collected) return;
     this.revealed = true;
     this.scene.tweens.killTweensOf(this.visual);
-    this.visual.setVisible(true).setAlpha(1).setScale(1).setPosition(this.definition.x, this.definition.y);
-    this.scene.tweens.add({ targets: this.visual, y: this.definition.y - 6, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.InOut" });
+    this.visual.setVisible(true).setAlpha(1).setScale(1).setPosition(this.anchorX, this.anchorY);
+
   }
 
   /** 收集成功后立即隐藏 E 提示，播放瓶子上浮淡出；保留对象供失败后复位。 */
@@ -61,6 +70,6 @@ export class PhraseCollectible {
     this.collected = false;
     this.revealed = false;
     this.setPromptVisible(false);
-    this.visual.setVisible(false).setAlpha(1).setScale(1).setPosition(this.definition.x, this.definition.y);
+    this.visual.setVisible(false).setAlpha(1).setScale(1).setPosition(this.anchorX, this.anchorY);
   }
 }

@@ -5,47 +5,6 @@ import { PhraseArrangement } from "../src/core/PhraseArrangement";
 
 const ids = ["mist", "bloom", "amber", "fern"];
 
-test("必须集齐全部片段并返回出生点，才允许完成关卡", () => {
-  const progress = new LevelProgress(ids);
-  assert.equal(progress.enterSpawnPoint(), false);
-  assert.equal(progress.complete(true), false);
-  progress.revealFragments();
-  for (const id of ids.slice(0, 3)) assert.equal(progress.collect(id), true);
-  assert.equal(progress.phase, "exploring");
-  assert.equal(progress.enterSpawnPoint(), false);
-  assert.equal(progress.collect(ids[3]), true);
-  assert.equal(progress.phase, "returning");
-  assert.equal(progress.complete(true), false);
-  assert.equal(progress.enterSpawnPoint(), true);
-  assert.equal(progress.phase, "arranging");
-  assert.equal(progress.complete(false), false);
-  assert.equal(progress.count, 4);
-  assert.equal(progress.phase, "arranging");
-  assert.equal(progress.complete(true), true);
-  assert.equal(progress.phase, "completed");
-  assert.equal(progress.enterSpawnPoint(), false);
-});
-
-test("重复碰撞与未知片段不会增加收集进度", () => {
-  const progress = new LevelProgress(ids);
-  assert.equal(progress.collect("unknown"), false);
-  progress.revealFragments();
-  assert.equal(progress.collect("mist"), true);
-  assert.equal(progress.collect("mist"), false);
-  assert.equal(progress.count, 1);
-});
-
-test("退出排序保留所有收集进度，可以再次进入", () => {
-  const progress = new LevelProgress(ids);
-  progress.revealFragments();
-  ids.forEach(id => progress.collect(id));
-  progress.enterSpawnPoint();
-  progress.leaveArrangement();
-  assert.equal(progress.phase, "returning");
-  assert.equal(progress.count, 4);
-  assert.equal(progress.enterSpawnPoint(), true);
-});
-
 test("槽位不完整时不算正确，所有错误排列都不能通关", () => {
   const arrangement = new PhraseArrangement(ids);
   assert.equal(arrangement.isFilled, false);

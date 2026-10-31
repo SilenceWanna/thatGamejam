@@ -3,24 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f3efe3" />
-    <meta name="description" content="瓶中小调：魔法师苏醒，用玻璃罐收集自然的声音，复原失序的四季乐章。春季可玩切片。" />
+    <meta name="theme-color" content="#263d32" />
     <title>瓶中小调 · 春季 Demo</title>
   </head>
   <body>
-    <main class="game-shell">
-      <header class="page-header">
-        <a class="wordmark" href="./" aria-label="瓶中小调首页"><span class="brand-symbol">♮</span><span>瓶中小调<small>MELODY IN A JAR</small></span></a>
-        <div class="edition"><span></span> 春 · 夏 · 秋 · 冬 <b> / </b> SPRING DEMO</div>
-      </header>
-      <section class="game-frame" aria-label="第一关游戏区域">
-        <div id="game" tabindex="0" aria-label="A D 或左右方向键移动，空格跳跃，F 显现声音罐，靠近玻璃瓶看到提示后按 E 收集。集齐四只声音罐后回到左侧回忆点。"></div>
-        <div id="loading-message" role="status">正在唤醒森林中的旋律…</div>
-      </section>
-      <footer class="page-footer">
-        <p><span class="footer-dot"></span> 用一只玻璃罐，找回春天的节拍。</p>
-        <p><kbd>A</kbd><kbd>D</kbd> 移动 <span class="divider">/</span> <kbd>SPACE</kbd> 跳跃 <span class="divider">/</span> <kbd>F</kbd> 显现 <span class="divider">/</span> <kbd>E</kbd> 收集</p>
-      </footer>
+    <main class="game-shell" aria-label="瓶中小调第一关">
+      <div id="game" tabindex="0" aria-label="A、D 移动，空格跳跃，F 显现，靠近声音罐按 E 收集。拖动声音罐排列后点击播放。"></div>
+      <div id="loading-message" role="status">正在唤醒森林中的旋律…</div>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

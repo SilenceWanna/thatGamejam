@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import type { FragmentDefinition } from "../content/types";
-import { drawJar, colorNumber } from "../game/art/assetImages";
-import { uiText } from "./components";
+import type { LevelContent } from "../content/types";
+import { JarView } from "../game/art/JarView";
+import type { JarVisualState } from "../game/art/JarView";
 
 /** 拖拽与点击共用同一个放入操作。只移动拖拽影像，原卡片和槽位位置不变。 */
 export class PhraseDragController {
@@ -9,13 +9,10 @@ export class PhraseDragController {
   /** 开始拖拽时创建带名称和颜色的瓶子影像，原声音库/槽位位置保持不动。 */
   private readonly start = (pointer: Phaser.Input.Pointer, object: Phaser.GameObjects.Rectangle): void => {
     const id = this.ownedId(object);
-    if (!id || !this.enabled()) return;
-    const fragment = this.fragments.find(item => item.id === id)!;
-    const art = this.scene.add.graphics();
-    art.fillStyle(0xf9f7e9, 0.96).fillRoundedRect(-70, -38, 140, 76, 10);
-    drawJar(art, colorNumber(fragment.color), -35, 0, 0.75);
-    const text = uiText(this.scene, 16, 0, fragment.label, 18).setOrigin(0.5);
-    this.ghost = this.scene.add.container(pointer.worldX, pointer.worldY, [art, text]).setDepth(200);
+    if (!id || !this.enabled() || !this.canDrag(id)) return;
+    const fragment = this.content.level.fragments.find(item => item.id === id)!;
+    const jar = new JarView(this.scene, this.content, fragment, 0, 0, 48, 64, this.state());
+    this.ghost = this.scene.add.container(pointer.worldX, pointer.worldY, [jar.root]).setDepth(200);
   };
   /** 拖拽过程中让临时影像跟随指针，不直接移动实际槽位对象。 */
   private readonly drag = (pointer: Phaser.Input.Pointer, object: Phaser.GameObjects.Rectangle): void => {
@@ -24,7 +21,7 @@ export class PhraseDragController {
   /** 松开到本面板槽位时调用统一放入规则；丢到界外不改变排列。 */
   private readonly drop = (_pointer: Phaser.Input.Pointer, object: Phaser.GameObjects.Rectangle, target: Phaser.GameObjects.Rectangle): void => {
     const id = this.ownedId(object);
-    if (id && target.getData("slotOwner") === this && this.enabled()) this.place(id, target.getData("slotIndex") as number);
+    if (id && this.canDrag(id) && target.getData("slotOwner") === this && this.enabled()) this.place(id, target.getData("slotIndex") as number);
   };
   /** 结束拖拽时销毁临时瓶子影像，无论是否成功放入槽位。 */
   private readonly end = (_pointer: Phaser.Input.Pointer, object: Phaser.GameObjects.Rectangle): void => {
@@ -32,7 +29,7 @@ export class PhraseDragController {
   };
 
   /** 绑定音序器拖拽事件，面板关闭或已提交时由 enabled 阻止操作。 */
-  constructor(private readonly scene: Phaser.Scene, private readonly fragments: readonly FragmentDefinition[], private readonly enabled: () => boolean, private readonly place: (id: string, index: number) => void) {
+  constructor(private readonly scene: Phaser.Scene, private readonly content: LevelContent, private readonly enabled: () => boolean, private readonly place: (id: string, index: number) => void, private readonly state: () => JarVisualState = () => "full", private readonly canDrag: (id: string) => boolean = () => true) {
     scene.input.on("dragstart", this.start);
     scene.input.on("drag", this.drag);
     scene.input.on("drop", this.drop);

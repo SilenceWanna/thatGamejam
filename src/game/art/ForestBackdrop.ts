@@ -4,6 +4,7 @@ import { createAssetImage } from "./assetImages";
 
 /** 占位场景完全由图形组成；填入 background 图片后整体替换，不影响关卡几何。 */
 export function createForestBackdrop(scene: Phaser.Scene, content: LevelContent): void {
+  if (content.level.art?.layers.length) return; // 正式多层场景由 SceneArtwork 统一绘制。
   const { width, height, groundY } = content.level.world;
   if (createAssetImage(scene, content, "background", width / 2, height / 2, width, height)) return;
   const art = scene.add.graphics();

@@ -13,7 +13,8 @@ async function start(): Promise<void> {
     width: content.level.world.width,
     height: content.level.world.height,
     backgroundColor: "#f0efdc",
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    // CSS 让画布铺满窗口；Phaser 按实际画布边界换算鼠标坐标。
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.NO_CENTER },
     render: { antialias: true, roundPixels: false },
     physics: { default: "arcade", arcade: { gravity: { x: 0, y: 0 }, fps: 60, fixedStep: true, debug: false } },
     scene: [new BootScene(content), LevelScene]

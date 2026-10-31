@@ -1,23 +1,53 @@
 {
   "images": {
     "background": {
-      "file": null
+      "file": "images/background.webp"
     },
     "ground": {
-      "file": null
+      "file": "images/ground.webp"
     },
     "platform": {
       "file": null
     },
     "player": {
-      "file": null,
-      "displayWidth": 48,
-      "displayHeight": 64
+      "file": "images/player.png",
+      "displayWidth": 76.8,
+      "displayHeight": 96,
+      "frameWidth": 256,
+      "frameHeight": 320,
+      "frameRate": 10,
+      "animations": {
+        "run": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "jump": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "interact": [
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "idle": [
+          0
+        ]
+      }
     },
     "fragment": {
-      "file": null,
-      "displayWidth": 32,
-      "displayHeight": 38
+      "file": "images/jarWindLow.webp"
     },
     "spawnPoint": {
       "file": null,
@@ -25,7 +55,7 @@
       "displayHeight": 92
     },
     "backgroundRestored": {
-      "file": null
+      "file": "images/backgroundRestored.webp"
     },
     "springDisorder": {
       "file": null
@@ -46,13 +76,118 @@
       "file": null
     },
     "jar": {
-      "file": null
+      "file": "images/jarWindFull.webp"
     },
     "exitClosed": {
-      "file": null
+      "file": "images/flowersFrozen.webp"
     },
     "exitOpen": {
-      "file": null
+      "file": "images/flowersRestored.webp"
+    },
+    "backgroundTransition": {
+      "file": "images/backgroundTransition.webp"
+    },
+    "midgroundTrees": {
+      "file": "images/midgroundTrees.webp"
+    },
+    "bushLeft": {
+      "file": "images/bushLeft.webp"
+    },
+    "bushRight": {
+      "file": "images/bushRight.webp"
+    },
+    "treeLeft": {
+      "file": "images/treeLeft.webp"
+    },
+    "treeRight": {
+      "file": "images/treeRight.webp"
+    },
+    "cloud": {
+      "file": "images/cloud.webp"
+    },
+    "arch": {
+      "file": "images/arch.webp"
+    },
+    "flowersFrozen": {
+      "file": "images/flowersFrozen.webp"
+    },
+    "flowersRestored": {
+      "file": "images/flowersRestored.webp"
+    },
+    "snow": {
+      "file": "images/snow.webp"
+    },
+    "birdNest": {
+      "file": "images/birdNest.webp"
+    },
+    "jarEmpty": {
+      "file": "images/jarEmpty.webp"
+    },
+    "inventoryFrame": {
+      "file": "images/inventoryFrame.webp"
+    },
+    "sequenceBoard": {
+      "file": "images/sequenceBoard.webp"
+    },
+    "playButton": {
+      "file": "images/playButton.webp"
+    },
+    "playIcon": {
+      "file": "images/playIcon.webp"
+    },
+    "playGlow": {
+      "file": "images/playGlow.webp"
+    },
+    "resetButton": {
+      "file": "images/resetButton.webp"
+    },
+    "hint0": {
+      "file": "images/hint0.webp"
+    },
+    "hint1": {
+      "file": "images/hint1.webp"
+    },
+    "hint2": {
+      "file": "images/hint2.webp"
+    },
+    "hint3": {
+      "file": "images/hint3.webp"
+    },
+    "jarWindLow": {
+      "file": "images/jarWindLow.webp"
+    },
+    "jarWindHalf": {
+      "file": "images/jarWindHalf.webp"
+    },
+    "jarWindFull": {
+      "file": "images/jarWindFull.webp"
+    },
+    "jarRainLow": {
+      "file": "images/jarRainLow.webp"
+    },
+    "jarRainHalf": {
+      "file": "images/jarRainHalf.webp"
+    },
+    "jarRainFull": {
+      "file": "images/jarRainFull.webp"
+    },
+    "jarSproutLow": {
+      "file": "images/jarSproutLow.webp"
+    },
+    "jarSproutHalf": {
+      "file": "images/jarSproutHalf.webp"
+    },
+    "jarSproutFull": {
+      "file": "images/jarSproutFull.webp"
+    },
+    "jarBirdLow": {
+      "file": "images/jarBirdLow.webp"
+    },
+    "jarBirdHalf": {
+      "file": "images/jarBirdHalf.webp"
+    },
+    "jarBirdFull": {
+      "file": "images/jarBirdFull.webp"
     }
   },
   "audio": {

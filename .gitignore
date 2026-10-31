@@ -2,6 +2,8 @@ node_modules/
 dist/
 .sites-runtime/
 .launcher/
+# 美术交付压缩包可能超过 GitHub 单文件限制；解压原图和 Web 导出仍可版本管理。
+/art/*.zip
 .DS_Store
 *.local
 logs/*

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { validateContent } from "../src/content/validateContent";
 import type { AssetManifest, LevelDefinition } from "../src/content/types";
-import { descendingTravelTime, maximumJumpHeight } from "../src/core/jumpGeometry";
+import { maximumJumpHeight } from "../src/core/jumpGeometry";
 
 const directory = fileURLToPath(new URL("../public/content/level-01/", import.meta.url));
 const level = JSON.parse(readFileSync(resolve(directory, "level.json"), "utf8")) as LevelDefinition;
@@ -13,32 +13,25 @@ const assets = JSON.parse(readFileSync(resolve(directory, "assets.json"), "utf8"
 
 test("第一关内容通过校验，所有配置文件均存在", () => {
   assert.doesNotThrow(() => validateContent(level, assets));
-  assert.equal(level.platforms.length, 3);
+  assert.equal(level.platforms.length, 1);
   assert.equal(level.fragments.length, 4);
   for (const audio of Object.values(assets.audio)) {
     for (const file of audio.files) assert.ok(existsSync(resolve(directory, file)), `缺少音频 ${file}`);
   }
+  for (const [key, image] of Object.entries(assets.images)) {
+    if (image.file) assert.ok(existsSync(resolve(directory, image.file)), `缺少图片 ${key}: ${image.file}`);
+  }
 });
 
-test("高度为中高低，地面可达左右平台；中央仅能从左侧跳上，右侧不可达", () => {
-  const [left, center, right] = level.platforms;
-  const { player, world } = level;
-  assert.ok(center.topY < left.topY && left.topY < right.topY);
-  const height = maximumJumpHeight(player.jumpSpeed, player.gravity);
-  assert.ok(world.groundY - center.topY > height);
-  for (const side of [left, right]) {
-    assert.ok(world.groundY - side.topY < height);
-  }
-  // 当前路线有意不对称：左侧高差 140 可跳上中央，右侧高差 160 超过最大跳高。
-  const timeFromLeft = descendingTravelTime(player.jumpSpeed, player.gravity, left.topY - center.topY);
-  assert.ok(timeFromLeft !== null, "左侧平台能够跳到中央平台的高度");
-  const requiredHorizontalTravel = Math.abs(left.x - center.x) - center.width / 2 + player.bodyWidth / 2;
-  assert.ok(requiredHorizontalTravel < player.moveSpeed * timeFromLeft, "从左平台中心出发，有足够时间落到中央平台内侧");
-  assert.equal(descendingTravelTime(player.jumpSpeed, player.gravity, right.topY - center.topY), null,
-    "右侧到中央按设计不可达，不应通过调参意外开放这条路线");
-  const centerFragment = level.fragments.find(fragment => fragment.x === center.x)!;
-  const groundJumpHeadY = world.groundY - height - player.bodyHeight;
-  assert.ok(groundJumpHeadY > centerFragment.y + 22, "不能从地面跳起提前触碰最高处收集物");
+test("拱门可由地面跳上，四处声音的定位与配置一致", () => {
+  const [arch] = level.platforms;
+  assert.ok(level.world.groundY - arch.topY < maximumJumpHeight(level.player.jumpSpeed, level.player.gravity));
+  assert.equal(arch.id, "arch-platform");
+  const elevatedRise = maximumJumpHeight(level.player.elevatedJumpSpeed, level.player.gravity);
+  assert.ok(arch.topY - elevatedRise >= (assets.images.player.displayHeight ?? 0), "在拱门跳跃时角色应位于画面内");
+  assert.ok(arch.topY - elevatedRise - level.player.bodyHeight / 2 <= level.fragments.find(f => f.id === "bird")!.y + level.fragments.find(f => f.id === "bird")!.interactionRadius, "鸟巢仍可到达");
+  assert.equal(level.fragments.find(fragment => fragment.id === "rain")?.anchorImage, "cloud");
+  assert.deepEqual(level.fragments.map(fragment => fragment.id), ["bird", "rain", "sprout", "wind"]);
 });
 
 test("缺失答案、重复 ID 和失效音频引用在构建世界前被拦截", () => {
@@ -58,6 +51,12 @@ test("缺失答案、重复 ID 和失效音频引用在构建世界前被拦截"
   const invalidAnimation = structuredClone(assets);
   invalidAnimation.images.player.animations = { run: [-1] };
   assert.throws(() => validateContent(level, invalidAnimation), /动画/);
+  const invalidArt = structuredClone(level);
+  invalidArt.art!.layers[0].image = "missing-image";
+  assert.throws(() => validateContent(invalidArt, assets), /图层引用/);
+  const invalidLayer = structuredClone(level);
+  invalidLayer.art!.layers[0].layer = 0;
+  assert.throws(() => validateContent(invalidLayer, assets), /图层编号/);
 });
 
 /** 解析 WAV 的数据块，验证四段临时音频与整句确实来自相同样本。 */

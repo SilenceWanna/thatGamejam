@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { LevelContent } from "../../content/types";
 import { createAssetImage } from "../art/assetImages";
+import { WORLD_DEPTH } from "../art/renderLayers";
 
 export interface Terrain { ground: Phaser.GameObjects.Rectangle; platforms: Phaser.Physics.Arcade.StaticGroup }
 
@@ -10,7 +11,7 @@ export function createTerrain(scene: Phaser.Scene, content: LevelContent): Terra
   const groundHeight = world.height - world.groundY;
   const ground = scene.add.rectangle(world.width / 2, world.groundY + groundHeight / 2, world.width, groundHeight, 0, 0);
   scene.physics.add.existing(ground, true);
-  if (!createAssetImage(scene, content, "ground", world.width / 2, world.groundY + groundHeight / 2, world.width, groundHeight)) {
+  if (!content.level.art?.layers.length && !createAssetImage(scene, content, "ground", world.width / 2, world.groundY + groundHeight / 2, world.width, groundHeight)) {
     const art = scene.add.graphics();
     art.fillStyle(0x7b8261).fillRect(0, world.groundY, world.width, 9);
     art.fillStyle(0xb5a17d).fillRect(0, world.groundY + 9, world.width, groundHeight);
@@ -27,6 +28,11 @@ export function createTerrain(scene: Phaser.Scene, content: LevelContent): Terra
     body.checkCollision.down = false;
     body.checkCollision.left = false;
     body.checkCollision.right = false;
+    const artwork = content.level.art?.platforms[platform.id];
+    if (artwork) {
+      const image = createAssetImage(scene, content, artwork.image, platform.x, platform.topY + (artwork.offsetY ?? 0), artwork.width, artwork.height);
+      if (image) { image.setOrigin(0.5, 0).setDepth(WORLD_DEPTH.interactive); continue; }
+    }
     if (createAssetImage(scene, content, "platform", platform.x, platform.topY + platform.height / 2, platform.width, platform.height)) continue;
     const art = scene.add.graphics();
     const left = platform.x - platform.width / 2;

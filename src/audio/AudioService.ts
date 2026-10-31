@@ -12,6 +12,9 @@ export class AudioService {
   private sequenceGain?: GainNode;
   private sequenceStarts: number[] = [];
   private sequenceCallback?: (index: number | null) => void;
+  private lastAudioClock = 0;
+  private lastAudioAdvance = 0;
+  private sequenceComplete?: (completed: boolean) => void;
   private lastSegment = -1;
   private generation = 0;
   private muted = false;
@@ -38,10 +41,11 @@ export class AudioService {
 
   /** 开场真实点击触发：等待浏览器允许播放后启动循环背景音；失败时返回 false 供开场重试。 */
   async start(): Promise<boolean> {
-    if (!await this.gate.ensureReady() || this.destroyed) return false;
+    if (!await this.gate.ensureReady() || this.destroyed || this.paused) return false;
     if (!this.background && this.exists("bgm")) {
-      this.background = this.scene.sound.add(this.key("bgm"), { loop: true, volume: this.volume("bgm") });
-      this.background.play();
+      const background = this.scene.sound.add(this.key("bgm"), { loop: true, volume: this.volume("bgm") });
+      if (!background.play()) { background.destroy(); return false; }
+      this.background = background;
     }
     return true;
   }
@@ -71,12 +75,13 @@ export class AudioService {
   }
 
   /** 互斥播放开场、模糊回忆、单罐或完整排列；成功解锁后才按 BPM/素材长度安排起音并返回 true。 */
-  async playSequence(names: readonly string[], onSegment?: (index: number | null) => void, timing?: MelodyTiming): Promise<boolean> {
+  async playSequence(names: readonly string[], onSegment?: (index: number | null) => void, timing?: MelodyTiming, onComplete?: (completed: boolean) => void): Promise<boolean> {
     this.stopPhrase();
     if (!names.length || names.some(name => !this.exists(name))) return false;
     const generation = this.generation;
     if (!await this.gate.ensureReady() || generation !== this.generation || this.paused || this.destroyed) return false;
     this.sequenceCallback = onSegment;
+    this.sequenceComplete = onComplete;
     this.duckBackground(true);
     const manager = this.manager;
     if (!manager) {
@@ -89,6 +94,7 @@ export class AudioService {
     this.sequenceGain.gain.value = this.muted ? 0 : 1;
     // 完整乐句和背景/音效走同一个主输出，统一接受 Phaser 的音量、静音控制。
     this.sequenceGain.connect(manager.destination);
+    this.lastAudioClock = context.currentTime; this.lastAudioAdvance = performance.now();
     const baseTime = context.currentTime + 0.035;
     const offsets = timing ? sequenceOffsets(names.length, timing) : null;
     let nextStart = baseTime;
@@ -114,7 +120,7 @@ export class AudioService {
     clock.start(baseTime);
     this.sources.push(clock);
     clock.onended = () => {
-      if (generation === this.generation) this.stopPhrase();
+      if (generation === this.generation) this.stopPhrase(true);
     };
     return true;
   }
@@ -123,6 +129,9 @@ export class AudioService {
   update(): void {
     if (!this.sources.length || !this.manager) return;
     const now = this.manager.context.currentTime;
+    // 某些内嵌浏览器虽然报告 running，实际音频时钟却可能停止；中止并解锁界面，不能算一次完整演奏。
+    if (now > this.lastAudioClock) { this.lastAudioClock = now; this.lastAudioAdvance = performance.now(); }
+    else if (performance.now() - this.lastAudioAdvance > 2000) { this.stopPhrase(); return; }
     let index = -1;
     this.sequenceStarts.forEach((start, candidate) => { if (now >= start) index = candidate; });
     if (index !== this.lastSegment) {
@@ -132,7 +141,7 @@ export class AudioService {
   }
 
   /** 停止旧乐句、回调和高亮，并让尚在等待解锁的旧请求失效；不返还回忆机会。 */
-  stopPhrase(): void {
+  stopPhrase(completed = false): void {
     this.generation++;
     for (const source of this.sources) {
       source.onended = null;
@@ -150,6 +159,9 @@ export class AudioService {
     callback?.(null);
     this.lastSegment = -1;
     this.duckBackground(false);
+    const complete = this.sequenceComplete;
+    this.sequenceComplete = undefined;
+    complete?.(completed);
   }
 
   /** 暂停时立即停止乐句并暂停背景/音效，防止隐藏窗口继续播放。 */
@@ -169,7 +181,7 @@ export class AudioService {
   /** 没有 Web Audio 时逐段使用 Phaser 声音播放；保留试听功能，但节拍精度取决于浏览器。 */
   private playFallback(names: readonly string[], index: number, generation: number): void {
     if (generation !== this.generation) return;
-    if (index >= names.length) { this.stopPhrase(); return; }
+    if (index >= names.length) { this.stopPhrase(true); return; }
     this.sequenceCallback?.(index);
     const sound = this.scene.sound.add(this.key(names[index]), { volume: this.volume(names[index]) });
     this.fallbackSound = sound;

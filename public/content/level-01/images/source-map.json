@@ -1,0 +1,192 @@
+{
+  "background": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/06-第六层（背景大底图）/背景图-暂行-冰冻.png",
+    "width": 1920,
+    "height": 801
+  },
+  "backgroundTransition": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/06-第六层（背景大底图）/背景图-暂行-过渡.png",
+    "width": 1920,
+    "height": 802
+  },
+  "backgroundRestored": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/06-第六层（背景大底图）/背景图-暂行.png",
+    "width": 1920,
+    "height": 802
+  },
+  "midgroundTrees": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/05-第五层（树木中景）/树木中景.png",
+    "width": 1920,
+    "height": 791
+  },
+  "ground": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/03-第三层（小溪、地面）/小溪&地面.png",
+    "width": 1600,
+    "height": 290
+  },
+  "bushLeft": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/01-第一层（灌木丛）/灌木-左.png",
+    "width": 500,
+    "height": 455
+  },
+  "bushRight": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/01-第一层（灌木丛）/灌木-右.png",
+    "width": 500,
+    "height": 484
+  },
+  "treeLeft": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/01-第一层（灌木丛）/边框树-左.png",
+    "width": 700,
+    "height": 1060
+  },
+  "treeRight": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/01-第一层（灌木丛）/边框树-右.png",
+    "width": 700,
+    "height": 1061
+  },
+  "cloud": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/04-第四层（交互）/云朵.png",
+    "width": 700,
+    "height": 285
+  },
+  "arch": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/04-第四层（交互）/拱门（二层平台）.png",
+    "width": 900,
+    "height": 599
+  },
+  "flowersFrozen": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/04-第四层（交互）/花丛-冻结.png",
+    "width": 700,
+    "height": 394
+  },
+  "flowersRestored": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/04-第四层（交互）/花丛-未冻结.png",
+    "width": 700,
+    "height": 391
+  },
+  "snow": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/04-第四层（交互）/雪地.png",
+    "width": 700,
+    "height": 136
+  },
+  "birdNest": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/04-第四层（交互）/鸟巢.png",
+    "width": 300,
+    "height": 306
+  },
+  "jarEmpty": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-未收集.png",
+    "width": 192,
+    "height": 242
+  },
+  "inventoryFrame": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶子存放.png",
+    "width": 900,
+    "height": 408
+  },
+  "sequenceBoard": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/旋律放置底图.png",
+    "width": 1280,
+    "height": 553
+  },
+  "playButton": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/播放.png",
+    "width": 256,
+    "height": 265
+  },
+  "playIcon": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/播放cion.png",
+    "width": 128,
+    "height": 161
+  },
+  "playGlow": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/播放键可动部分.png",
+    "width": 256,
+    "height": 256
+  },
+  "resetButton": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/重置.png",
+    "width": 256,
+    "height": 292
+  },
+  "hint0": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/旋律提示-剩余0次机会.png",
+    "width": 800,
+    "height": 301
+  },
+  "hint1": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/旋律提示-剩余1次机会.png",
+    "width": 800,
+    "height": 301
+  },
+  "hint2": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/旋律提示-剩余2次机会.png",
+    "width": 800,
+    "height": 301
+  },
+  "hint3": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/旋律提示-剩余3次机会.png",
+    "width": 800,
+    "height": 301
+  },
+  "jarWindLow": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-金-一点点.png",
+    "width": 192,
+    "height": 240
+  },
+  "jarWindHalf": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-金-半满.png",
+    "width": 192,
+    "height": 242
+  },
+  "jarWindFull": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-金-满.png",
+    "width": 192,
+    "height": 229
+  },
+  "jarRainLow": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-蓝-一点点.png",
+    "width": 192,
+    "height": 259
+  },
+  "jarRainHalf": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-蓝-半满.png",
+    "width": 192,
+    "height": 242
+  },
+  "jarRainFull": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-蓝-满.png",
+    "width": 192,
+    "height": 238
+  },
+  "jarSproutLow": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-绿-一点点.png",
+    "width": 192,
+    "height": 241
+  },
+  "jarSproutHalf": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-绿-半满.png",
+    "width": 192,
+    "height": 246
+  },
+  "jarSproutFull": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-绿-满.png",
+    "width": 192,
+    "height": 238
+  },
+  "jarBirdLow": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-青-一点点.png",
+    "width": 192,
+    "height": 253
+  },
+  "jarBirdHalf": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-青-半满.png",
+    "width": 192,
+    "height": 244
+  },
+  "jarBirdFull": {
+    "source": "art/thatgamejam_瓶中小调_贴图素材_v1.0/UI/瓶-青-满.png",
+    "width": 192,
+    "height": 241
+  }
+}

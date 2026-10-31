@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { LevelContent, PlayerAnimationName } from "../../content/types";
 import type { PlayerInput } from "../../input/InputSource";
 import { assetKey } from "../../content/loadLevelContent";
+import { JumpState, predictLanding } from "../../core/JumpState";
 import { createAssetImage, drawJar } from "../art/assetImages";
 
 export class PlayerActor {
@@ -10,11 +11,15 @@ export class PlayerActor {
   private readonly visual: Phaser.GameObjects.Container;
   private readonly sprite?: Phaser.GameObjects.Sprite;
   private coyoteRemaining = 0;
+  private groundedJumpSpeed = 0;
   private bufferRemaining = 0;
   private jumpConsumed = false;
   private facing = 1;
-  private animationTime = 0;
   private interactionTime = 0;
+  private animationState?: PlayerAnimationName;
+  private readonly jump = new JumpState();
+  private lastJumpFrame = 0;
+  private landedFrameShown = false;
   private readonly interactionJar: Phaser.GameObjects.Container;
 
   /** 读取移动/跳跃参数，创建独立碰撞体，并接入角色 idle/run/jump/interact 动画或占位人形。 */
@@ -68,6 +73,8 @@ export class PlayerActor {
     const settings = this.content.level.player;
     if (this.grounded && this.body.velocity.y >= 0) {
       this.coyoteRemaining = settings.coyoteTimeMs;
+      // 离开地面前记录所站表面，离台宽限时间内仍保持同一种跳跃高度。
+      this.groundedJumpSpeed = this.feetY < this.content.level.world.groundY - 4 ? settings.elevatedJumpSpeed : settings.jumpSpeed;
       this.jumpConsumed = false;
     } else this.coyoteRemaining = Math.max(0, this.coyoteRemaining - delta);
     this.bufferRemaining = input.jumpPressed ? settings.jumpBufferMs : Math.max(0, this.bufferRemaining - delta);
@@ -75,24 +82,48 @@ export class PlayerActor {
     if (input.moveAxis) this.facing = Math.sign(input.moveAxis);
     const canJump = (this.grounded && this.body.velocity.y >= 0) || this.coyoteRemaining > 0;
     if ((input.jumpPressed || this.bufferRemaining > 0) && canJump && !this.jumpConsumed) {
-      this.body.setVelocityY(-settings.jumpSpeed);
+      this.body.setVelocityY(-(this.groundedJumpSpeed || settings.jumpSpeed));
       this.jumpConsumed = true;
       this.bufferRemaining = 0;
       this.coyoteRemaining = 0;
+      this.jump.start(); this.landedFrameShown = false;
       this.onJump();
     }
-    this.animationTime += delta;
     this.interactionTime = Math.max(0, this.interactionTime - delta);
-    this.interactionJar.setVisible(this.interactionTime > 0);
+    const interactionAnimation = `${assetKey(this.content.level.id, "player")}:interact`;
+    this.interactionJar.setVisible(this.interactionTime > 0 && !(this.sprite && this.sprite.scene.anims.exists(interactionAnimation)));
     const moving = input.moveAxis !== 0 && this.grounded;
-    this.visual.setPosition(this.x, this.feetY - (moving ? Math.sin(this.animationTime * 0.022) * 1.5 : 0)).setScale(this.facing, 1);
-    const state: PlayerAnimationName = this.interactionTime > 0 && this.grounded ? "interact" : !this.grounded ? "jump" : moving ? "run" : "idle";
-    const key = `${assetKey(this.content.level.id, "player")}:${state}`;
-    if (this.sprite && this.sprite.scene.anims.exists(key)) this.sprite.play(key, true);
+    // 图片脚底与物理脚底保持对齐；行走动作本身已包含起伏。
+    this.visual.setPosition(this.x, this.feetY).setScale(this.facing, 1);
+    const surfaces = [
+      ...this.content.level.platforms.map(p => ({ left: p.x - p.width / 2, right: p.x + p.width / 2, topY: p.topY })),
+      { left: 0, right: this.content.level.world.width, topY: this.content.level.world.groundY },
+    ];
+    const landing = predictLanding({ x: this.x, feetY: this.feetY, velocityX: this.body.velocity.x, velocityY: this.body.velocity.y,
+      gravity: settings.gravity, bodyWidth: settings.bodyWidth, worldWidth: this.content.level.world.width }, surfaces);
+    const jumpFrame = this.jump.update(this.grounded, this.body.velocity.y, settings.gravity, delta, landing);
+    if (this.jump.landed && moving && this.landedFrameShown) this.jump.reset();
+    else if (this.jump.landed) this.landedFrameShown = true;
+    if (this.sprite && this.jump.active) {
+      const frame = this.content.assets.images.player?.animations?.jump?.[jumpFrame - 1];
+      if (frame !== undefined && (this.animationState !== "jump" || this.lastJumpFrame !== jumpFrame)) {
+        this.sprite.anims.stop(); this.sprite.setFrame(frame); this.animationState = "jump"; this.lastJumpFrame = jumpFrame;
+      }
+    } else {
+      const state: PlayerAnimationName = this.interactionTime > 0 && this.grounded ? "interact" : moving ? "run" : "idle";
+      const key = `${assetKey(this.content.level.id, "player")}:${state}`;
+      if (this.sprite && state !== this.animationState && this.sprite.scene.anims.exists(key)) {
+        this.sprite.play(key); this.animationState = state;
+      }
+    }
   }
 
-  /** F 显现或 E 收集成功时短暂播放持罐互动动作，持续 380 毫秒。 */
-  playInteraction(): void { this.interactionTime = 380; }
+  /** F 或 E 成功时播放完整拿瓶动作；没有序列时沿用 380 毫秒占位表现。 */
+  playInteraction(): void {
+    const asset = this.content.assets.images.player;
+    this.interactionTime = Math.max(380, (asset?.animations?.interact?.length ?? 0) / (asset?.frameRate ?? 10) * 1000);
+    if (this.animationState === "interact") this.animationState = undefined;
+  }
 
   /** 暂停或打开音序器时清空速度和待触发跳跃，避免恢复后意外跳起。 */
   stop(): void { this.body.setVelocity(0); this.bufferRemaining = 0; this.coyoteRemaining = 0; }
@@ -100,6 +131,6 @@ export class PlayerActor {
   resetToSpawn(): void {
     const { spawn, player } = this.content.level;
     this.body.reset(spawn.x, spawn.feetY - player.bodyHeight / 2);
-    this.stop();
+    this.stop(); this.jump.reset();
   }
 }
