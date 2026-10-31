@@ -5,6 +5,10 @@ TypeScript + Phaser 4.2.1 + Arcade Physics + Vite 实现的 PC 横屏音乐解�
 
 已接入美术 v1.0 的多层森林、角色行走/跳跃/拿瓶动画、四色声音瓶和木质 UI。原图保留在 `art/`，Web 导出与后续替换方式见 [美术接入说明](docs/ART_INTEGRATION.md)。
 
+## Windows 单文件版本
+
+已经打包的便携版位于 `release/Melody-in-a-Jar-Demo-Windows-x64.exe`。在 Windows 10/11 x64 上双击即可打开独立游戏窗口，运行不依赖浏览器或联网。重新打包和分发注意事项见 [Windows EXE 说明](docs/WINDOWS_EXE.md)。
+
 ## 本地运行
 
 项目实际目录为 `/Users/wanna/game/gamejam261024`，包括 Git 历史、代码、依赖、临时素材和设计文档。旧目录 `/Users/wanna/Documents/ChatGPT/gamejam261024` 是指向新目录的兼容符号链接，没有保留第二份代码。原始 Word 策划案保留在新目录根部，未做修改。

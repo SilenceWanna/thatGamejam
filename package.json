@@ -4,18 +4,56 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.25.0",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "build": "pnpm typecheck && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "desktop": "pnpm build && electron .",
+    "package:windows": "pnpm build && electron-builder --win portable --x64"
   },
-  "dependencies": { "phaser": "4.2.1" },
+  "dependencies": {
+    "phaser": "4.2.1"
+  },
   "devDependencies": {
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0",
     "tsx": "^4.20.6",
     "typescript": "7.0.2",
     "vite": "8.3.5"
+  },
+  "main": "desktop/main.cjs",
+  "build": {
+    "appId": "com.thatgamejam.melodyinajar",
+    "productName": "Melody in a Jar",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**/*",
+      "dist/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "Melody-in-a-Jar-Demo-Windows-x64.exe",
+      "requestExecutionLevel": "user"
+    }
   }
 }
